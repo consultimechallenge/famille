@@ -1,0 +1,1205 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RP 2027 — Jérémie & Elisa</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Outfit:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.css"/>
+<style>
+:root {
+  --ink: #1c1917;
+  --ink-60: rgba(28,25,23,0.6);
+  --ink-30: rgba(28,25,23,0.3);
+  --paper: #f7f4ef;
+  --paper-warm: #ede9e0;
+  --paper-border: #ddd8cc;
+  --gold: #9a6f2e;
+  --gold-light: #c49040;
+  --water: #3d6b8a;
+  --water-light: #5a8fad;
+  --green: #3d6b47;
+  --amber: #a05c1a;
+  --red: #8b2e2e;
+  --radius: 12px;
+  --radius-sm: 7px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:'Outfit',sans-serif;background:var(--paper);color:var(--ink);line-height:1.65;font-weight:300;}
+strong{font-weight:500;}
+
+/* NAV */
+nav{
+  position:sticky;top:0;z-index:100;
+  background:rgba(247,244,239,0.92);
+  backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--paper-border);
+  padding:0 2rem;
+  display:flex;align-items:center;justify-content:space-between;
+  height:52px;
+}
+.nav-logo{font-family:'Cormorant Garamond',serif;font-size:1.1rem;font-weight:500;letter-spacing:0.03em;color:var(--ink);}
+.nav-links{display:flex;gap:1.5rem;}
+.nav-links a{font-size:12px;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink-60);text-decoration:none;transition:color 0.15s;}
+.nav-links a:hover{color:var(--gold);}
+
+/* HERO */
+.hero{
+  background:var(--ink);
+  color:var(--paper);
+  padding:4rem 2rem 3rem;
+  position:relative;
+  overflow:hidden;
+}
+.hero::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse 80% 60% at 70% 50%, rgba(154,111,46,0.15) 0%, transparent 70%);
+}
+.hero-inner{max-width:1100px;margin:0 auto;position:relative;}
+.hero-eyebrow{
+  font-size:11px;letter-spacing:0.25em;text-transform:uppercase;
+  color:var(--gold-light);margin-bottom:1.25rem;
+  display:flex;align-items:center;gap:0.75rem;
+}
+.hero-eyebrow::before{content:'';width:24px;height:1px;background:var(--gold-light);}
+.hero h1{
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(2.4rem,6vw,4rem);
+  font-weight:500;line-height:1.05;
+  margin-bottom:1.25rem;
+  letter-spacing:-0.01em;
+}
+.hero h1 em{font-style:italic;color:var(--gold-light);}
+.hero-sub{font-size:0.9rem;color:rgba(247,244,239,0.55);max-width:520px;margin-bottom:2.5rem;}
+.hero-stats{display:flex;flex-wrap:wrap;gap:2px;}
+.stat-pill{
+  background:rgba(247,244,239,0.07);
+  border:1px solid rgba(247,244,239,0.12);
+  border-radius:100px;
+  padding:0.5rem 1.1rem;
+  display:flex;flex-direction:column;
+}
+.stat-pill .val{font-size:1rem;font-weight:500;color:var(--gold-light);}
+.stat-pill .lbl{font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:rgba(247,244,239,0.4);}
+
+/* LAYOUT */
+.page{max-width:1100px;margin:0 auto;padding:3.5rem 2rem;}
+.section{margin-bottom:4.5rem;}
+.section-header{display:flex;align-items:baseline;gap:1rem;margin-bottom:0.35rem;}
+.section-title{font-family:'Cormorant Garamond',serif;font-size:1.75rem;font-weight:500;letter-spacing:-0.01em;}
+.section-num{font-family:'Cormorant Garamond',serif;font-size:1rem;color:var(--gold);font-style:italic;}
+.section-rule{height:1px;background:var(--paper-border);margin-bottom:1.25rem;}
+.section-sub{font-size:0.8rem;color:var(--ink-60);margin-bottom:1.5rem;letter-spacing:0.02em;}
+
+/* RÊVE */
+.reve-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1px;background:var(--paper-border);border:1px solid var(--paper-border);border-radius:var(--radius);overflow:hidden;}
+.reve-cell{background:white;padding:1.5rem;display:flex;flex-direction:column;gap:0.6rem;}
+.reve-cell:first-child{background:var(--ink);color:var(--paper);}
+.reve-icon{font-size:1.3rem;line-height:1;}
+.reve-nom{font-family:'Cormorant Garamond',serif;font-size:1.05rem;font-weight:500;}
+.reve-cell:first-child .reve-nom{color:var(--gold-light);}
+.reve-desc{font-size:0.78rem;color:var(--ink-60);line-height:1.55;}
+.reve-cell:first-child .reve-desc{color:rgba(247,244,239,0.55);}
+
+/* CRITÈRES */
+.criteres-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:0.75rem;}
+.critere{background:white;border:1px solid var(--paper-border);border-radius:var(--radius-sm);padding:1rem 1.1rem;}
+.critere.nneg{border-left:2.5px solid var(--gold);}
+.critere.imp{border-left:2.5px solid var(--water);}
+.critere-type{font-size:9px;letter-spacing:0.18em;text-transform:uppercase;margin-bottom:0.35rem;}
+.critere.nneg .critere-type{color:var(--gold);}
+.critere.imp .critere-type{color:var(--water);}
+.critere-titre{font-weight:500;font-size:0.88rem;margin-bottom:0.2rem;}
+.critere-desc{font-size:0.75rem;color:var(--ink-60);line-height:1.5;}
+
+/* CARTE */
+#map{height:500px;border-radius:var(--radius);border:1px solid var(--paper-border);overflow:hidden;}
+.carte-legend{display:flex;flex-wrap:wrap;gap:12px;margin-top:0.75rem;font-size:11px;color:var(--ink-60);}
+.leg{display:flex;align-items:center;gap:6px;}
+.leg-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.leg-sq{width:10px;height:10px;border-radius:2px;flex-shrink:0;}
+
+/* TOP 5 */
+.top5{display:flex;flex-direction:column;gap:1px;background:var(--paper-border);border:1px solid var(--paper-border);border-radius:var(--radius);overflow:hidden;}
+.commune-card{background:white;display:grid;grid-template-columns:200px 1fr;min-height:180px;}
+.commune-card:hover .commune-aside{background:#f9f6f0;}
+.commune-aside{
+  background:var(--paper);
+  padding:1.5rem 1.25rem;
+  display:flex;flex-direction:column;
+  border-right:1px solid var(--paper-border);
+  transition:background 0.15s;
+}
+.commune-rang{
+  font-family:'Cormorant Garamond',serif;
+  font-size:3rem;font-weight:400;line-height:1;
+  color:var(--paper-border);
+  margin-bottom:0.5rem;
+}
+.commune-nom{font-family:'Cormorant Garamond',serif;font-size:1.1rem;font-weight:500;line-height:1.2;margin-bottom:0.4rem;}
+.commune-tagline{font-size:0.72rem;font-style:italic;color:var(--gold);margin-bottom:0.75rem;line-height:1.4;}
+.commune-badges{display:flex;flex-direction:column;gap:4px;margin-top:auto;}
+.badge{font-size:10px;padding:2px 8px;border-radius:100px;font-weight:400;white-space:nowrap;display:inline-block;}
+.b-vert{background:#e8f4e8;color:#2d5a2d;}
+.b-bleu{background:#e3eef6;color:#1e4d6b;}
+.b-or{background:#f7eed9;color:#6b4a10;}
+.b-rouge{background:#f7e8e8;color:#6b2020;}
+.b-gris{background:#efefef;color:#555;}
+.b-ambre{background:#f7f0e0;color:#7a4d10;}
+.commune-body{padding:1.5rem;}
+.commune-raisons{margin-bottom:1rem;}
+.raison{font-size:0.8rem;color:var(--ink-60);padding:3px 0 3px 1rem;position:relative;line-height:1.4;}
+.raison::before{content:'→';position:absolute;left:0;color:var(--gold);font-size:0.72rem;top:4px;}
+.commune-stats{display:flex;flex-wrap:wrap;gap:1.25rem;padding-top:0.75rem;border-top:1px solid var(--paper-border);margin-top:0.75rem;}
+.cstat{display:flex;flex-direction:column;}
+.cstat-val{font-weight:500;font-size:0.85rem;}
+.cstat-val.vert{color:var(--green);}
+.cstat-val.or{color:var(--gold);}
+.cstat-val.bleu{color:var(--water);}
+.cstat-key{font-size:10px;color:var(--ink-60);text-transform:uppercase;letter-spacing:0.07em;}
+.alerte{font-size:0.75rem;padding:0.4rem 0.75rem;border-radius:var(--radius-sm);margin-top:0.6rem;line-height:1.5;}
+.alerte-rouge{background:#fdf2f2;border:1px solid #f5c6c6;color:var(--red);}
+.alerte-ambre{background:#fef9ed;border:1px solid #f0d98a;color:#7a4f10;}
+.alerte-vert{background:#eef6ee;border:1px solid #b8d9b8;color:#2d5a2d;}
+
+/* ANGLES MORTS */
+.angles-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1px;background:var(--paper-border);border:1px solid var(--paper-border);border-radius:var(--radius);overflow:hidden;}
+.angle-card{background:white;padding:1.5rem;}
+.angle-num{font-family:'Cormorant Garamond',serif;font-size:2.5rem;color:var(--paper-border);line-height:1;margin-bottom:0.4rem;}
+.angle-titre{font-weight:500;font-size:0.9rem;margin-bottom:0.4rem;}
+.angle-desc{font-size:0.78rem;color:var(--ink-60);line-height:1.6;}
+.angle-action{font-size:0.75rem;margin-top:0.75rem;padding:0.4rem 0.75rem;border-radius:var(--radius-sm);background:var(--paper);border:1px solid var(--paper-border);color:var(--ink);font-weight:500;}
+
+/* TABLEAUX */
+.tab-wrap{border:1px solid var(--paper-border);border-radius:var(--radius);overflow:hidden;}
+.tab-controls{padding:1rem 1.25rem;background:white;border-bottom:1px solid var(--paper-border);display:flex;flex-wrap:wrap;gap:6px;align-items:center;}
+.tab-count{font-size:11px;color:var(--ink-60);margin-left:auto;}
+.filt{font-size:11px;padding:4px 12px;border-radius:100px;border:1px solid var(--paper-border);background:var(--paper);color:var(--ink-60);cursor:pointer;font-family:'Outfit',sans-serif;transition:all 0.12s;}
+.filt:hover,.filt.on{background:var(--ink);color:var(--paper);border-color:var(--ink);}
+.tab-scroll{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:11.5px;min-width:700px;}
+thead th{font-size:10px;font-weight:500;color:var(--ink-60);text-align:left;padding:9px 12px;border-bottom:1px solid var(--paper-border);cursor:pointer;white-space:nowrap;background:var(--paper);user-select:none;letter-spacing:0.05em;}
+thead th:hover{color:var(--ink);}
+thead th.asc::after{content:' ↑';color:var(--gold);}
+thead th.desc::after{content:' ↓';color:var(--gold);}
+tbody td{padding:7px 12px;border-bottom:1px solid var(--paper-border);vertical-align:middle;color:var(--ink);}
+tbody tr:last-child td{border-bottom:none;}
+tbody tr:hover td{background:#faf8f4;}
+.t-top{color:var(--green);font-weight:500;}
+.t-ok{color:#5a8040;font-weight:500;}
+.t-mid{color:var(--amber);}
+.t-bad{color:var(--red);}
+.s5{color:var(--green);}
+.s4{color:#5a7a30;}
+.s3{color:var(--amber);}
+.s2{color:var(--red);}
+
+/* FOOTER */
+footer{background:var(--ink);color:rgba(247,244,239,0.3);text-align:center;padding:2rem;font-size:0.72rem;margin-top:4rem;}
+
+@media(max-width:680px){
+  .commune-card{grid-template-columns:1fr;}
+  .commune-aside{border-right:none;border-bottom:1px solid var(--paper-border);}
+  nav .nav-links{display:none;}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo">RP 2027 — J&E</div>
+  <div class="nav-links">
+    <a href="#reve">Le rêve</a>
+    <a href="#criteres">Critères</a>
+    <a href="#carte">Carte</a>
+    <a href="#top10">Top 10</a>
+    <a href="#angles">Angles morts</a>
+    <a href="#communes">Toutes les communes</a>
+    <a href="#transport">Transport</a>
+  </div>
+</nav>
+
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-eyebrow">Projet résidence principale</div>
+    <h1>Jérémie & Elisa<br><em>Ouest lyonnais — 2027</em></h1>
+    <p class="hero-sub">Communes cibles, transport, petite enfance et angles morts pour un achat éclairé.</p>
+    <div class="hero-stats">
+      <div class="stat-pill"><span class="val">500k€ max</span><span class="lbl">Budget bien</span></div>
+      <div class="stat-pill"><span class="val">Nov. 2027</span><span class="lbl">Horizon achat</span></div>
+      <div class="stat-pill"><span class="val">Max 35 min</span><span class="lbl">Elisa → Saint-Paul</span></div>
+      <div class="stat-pill"><span class="val">Max 25 min</span><span class="lbl">Jérémie → Limonest</span></div>
+      <div class="stat-pill"><span class="val">3+ ch / 80m²</span><span class="lbl">Typologie</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="page">
+
+<!-- RÊVE -->
+<div class="section" id="reve">
+  <div class="section-header">
+    <span class="section-num">01</span>
+    <h2 class="section-title">Le rêve</h2>
+  </div>
+  <div class="section-rule"></div>
+  <div class="reve-grid">
+    <div class="reve-cell">
+      <div class="reve-icon">〜</div>
+      <div class="reve-nom">L'eau</div>
+      <div class="reve-desc">Ruisseau dans ou au pied du jardin. Saône ou Azergues en vue. Le son de l'eau.</div>
+    </div>
+    <div class="reve-cell">
+      <div class="reve-icon">☀</div>
+      <div class="reve-nom">Le soleil rosé</div>
+      <div class="reve-desc">Orientation est ou ouest. Vignes, collines ou Saône qui s'embrasent au lever ou coucher.</div>
+    </div>
+    <div class="reve-cell">
+      <div class="reve-icon">⌂</div>
+      <div class="reve-nom">La vie de village</div>
+      <div class="reve-desc">Épicerie, bistrot, restaurant à pied. Un marché. Des voisins. Pas un lotissement dortoir.</div>
+    </div>
+    <div class="reve-cell">
+      <div class="reve-icon">◈</div>
+      <div class="reve-nom">Le caractère</div>
+      <div class="reve-desc">Vieilles pierres, poutres, volumes atypiques. Pas de pavillon années 80 sans âme.</div>
+    </div>
+  </div>
+</div>
+
+<!-- CRITÈRES -->
+<div class="section" id="criteres">
+  <div class="section-header">
+    <span class="section-num">02</span>
+    <h2 class="section-title">Critères</h2>
+  </div>
+  <div class="section-rule"></div>
+  <p class="section-sub">Dorés = non-négociables éliminatoires — Bleus = importants</p>
+  <div class="criteres-grid">
+    <div class="critere nneg"><div class="critere-type">Non-négociable</div><div class="critere-titre">Vue dégagée / panoramique</div><div class="critere-desc">Collines, vignes, horizon. Pas de vue sur immeuble ou rue.</div></div>
+    <div class="critere nneg"><div class="critere-type">Non-négociable</div><div class="critere-titre">Jardin privatif exploitable</div><div class="critere-desc">Terrain plat ou légèrement en pente. Pas une terrasse partagée.</div></div>
+    <div class="critere nneg"><div class="critere-type">Non-négociable</div><div class="critere-titre">Zéro vis-à-vis</div><div class="critere-desc">Intimité totale garantie. Pas de voisin à portée de regard.</div></div>
+    <div class="critere nneg"><div class="critere-type">Non-négociable</div><div class="critere-titre">3 chambres min / 80m²+</div><div class="critere-desc">Bébé sept. 2026 + bureau. 80m² minimum habitable.</div></div>
+    <div class="critere nneg"><div class="critere-type">Non-négociable</div><div class="critere-titre">Eau dans ou proche jardin</div><div class="critere-desc">Ruisseau dans le terrain idéalement. Rivière ou Saône en contrebas accepté.</div></div>
+    <div class="critere nneg"><div class="critere-type">Non-négociable</div><div class="critere-titre">Lever ou coucher de soleil rosé</div><div class="critere-desc">Orientation est ou ouest avec horizon libre.</div></div>
+    <div class="critere imp"><div class="critere-type">Important</div><div class="critere-titre">Vie de village réelle à pied</div><div class="critere-desc">Commerces à pied — pas à 5 min en voiture. Marché, bistrot, épicerie.</div></div>
+    <div class="critere imp"><div class="critere-type">Important</div><div class="critere-titre">Caractère architectural</div><div class="critere-desc">Vieilles pierres, poutres, volumes atypiques.</div></div>
+    <div class="critere imp"><div class="critere-type">Important</div><div class="critere-titre">Crèche max 10 min</div><div class="critere-desc">Bébé sept. 2026 — liste d'attente à vérifier avant toute offre sérieuse.</div></div>
+    <div class="critere imp"><div class="critere-type">Important</div><div class="critere-titre">Travaux acceptés</div><div class="critere-desc">Si cuisine + sdb + 2 chambres habitables dès J1.</div></div>
+    <div class="critere imp"><div class="critere-type">Important</div><div class="critere-titre">Elisa → Saint-Paul max 35 min</div><div class="critere-desc">TER C22 ou TER Perrache + bus 31. Voiture jusqu'à gare OK.</div></div>
+    <div class="critere imp"><div class="critere-type">Important</div><div class="critere-titre">Jérémie → Limonest max 25 min</div><div class="critere-desc">Bureau Freeland à Limonest. Voiture, hors bouchons.</div></div>
+  </div>
+</div>
+
+<!-- CARTE -->
+<div class="section" id="carte">
+  <div class="section-header">
+    <span class="section-num">03</span>
+    <h2 class="section-title">Carte des secteurs</h2>
+  </div>
+  <div class="section-rule"></div>
+  <p class="section-sub">Cliquer sur les marqueurs pour les détails</p>
+  <div id="map"></div>
+  <div class="carte-legend">
+    <div class="leg"><div class="leg-dot" style="background:#9a6f2e"></div>Top 5 cibles</div>
+    <div class="leg"><div class="leg-dot" style="background:#777"></div>Shortlist</div>
+    <div class="leg"><div class="leg-sq" style="background:#f7eed9;border:1px solid #9a6f2e"></div>Lozanne / Limonest</div>
+    <div class="leg"><div class="leg-sq" style="background:#e3eef6;border:1px solid #3d6b8a"></div>Gares clés</div>
+  </div>
+</div>
+
+<!-- TOP 5 -->
+<div class="section" id="top10">
+  <div class="section-header">
+    <span class="section-num">04</span>
+    <h2 class="section-title">Top 10 des communes cibles</h2>
+  </div>
+  <div class="section-rule"></div>
+  <p class="section-sub">Classées par adéquation au rêve — eau + vue + vie + transport + petite enfance</p>
+  <div class="top5">
+
+    <div class="commune-card">
+      <div class="commune-aside">
+        <div class="commune-rang">01</div>
+        <div class="commune-nom">Belmont-d'Azergues</div>
+        <div class="commune-tagline">"La Toscane beaujolaise à 20 min de Limonest"</div>
+        <div class="commune-badges">
+          <span class="badge b-bleu">Azergues en contrebas</span>
+          <span class="badge b-or">Vignes + panorama</span>
+          <span class="badge b-vert">Pierres dorées</span>
+          <span class="badge b-rouge">⚠ Aucune crèche sur place</span>
+        </div>
+      </div>
+      <div class="commune-body">
+        <div class="commune-raisons">
+          <div class="raison">Village perché à 320m — vue panoramique sur la vallée et les vignes, couchers de soleil spectaculaires</div>
+          <div class="raison">L'Azergues en contrebas — certaines propriétés ont un ruisseau affluent dans le jardin</div>
+          <div class="raison">Bâti en pierres dorées : fermes, maisons de maître, cachet authentique</div>
+          <div class="raison">Chazay à 5 min en voiture pour les courses, bistrot et marché — mais pas à pied</div>
+        </div>
+        <div class="commune-stats">
+          <div class="cstat"><span class="cstat-val or">~2 900€/m²</span><span class="cstat-key">Prix</span></div>
+          <div class="cstat"><span class="cstat-val vert">~172m²</span><span class="cstat-key">Surface à 500k€</span></div>
+          <div class="cstat"><span class="cstat-val bleu">Voiture 8min + C22 18min</span><span class="cstat-key">Elisa → Saint-Paul (~28min)</span></div>
+          <div class="cstat"><span class="cstat-val">20 min</span><span class="cstat-key">Jérémie → Limonest</span></div>
+        </div>
+        <div class="alerte alerte-rouge">⚠ PPRI Azergues — vérifier parcelle par parcelle avant toute offre</div>
+        <div class="alerte alerte-ambre">☁ Village perché 320m — brouillard inverse nov→mars possible. Visiter en hiver avant offre ferme.</div>
+        <div class="alerte alerte-rouge">👶 Aucune crèche à Belmont — La Ribambelle à Chazay (5min voiture). Appeler avant toute offre sérieuse.</div>
+      </div>
+    </div>
+
+    <div class="commune-card">
+      <div class="commune-aside">
+        <div class="commune-rang">02</div>
+        <div class="commune-nom">Collonges-au-Mont-d'Or</div>
+        <div class="commune-tagline">"Lever de soleil sur la Saône — 28 min Saint-Paul"</div>
+        <div class="commune-badges">
+          <span class="badge b-bleu">Saône au pied</span>
+          <span class="badge b-vert">TER direct + bus 31</span>
+          <span class="badge b-or">Pierre dorée</span>
+          <span class="badge b-vert">✓✓ 4 structures petite enfance</span>
+        </div>
+      </div>
+      <div class="commune-body">
+        <div class="commune-raisons">
+          <div class="raison">La Saône au pied du village — lumière dorée sur l'eau au lever de soleil côté est</div>
+          <div class="raison">TER depuis la gare du village : 12 min → Perrache + bus 31 8 min → Saint-Paul (~28 min total)</div>
+          <div class="raison">Vrai village animé : commerces, restaurants, boulangerie à pied</div>
+          <div class="raison">Meilleure offre petite enfance de la shortlist : crèche Les Blés en Herbe (44 places) + 3 écoles maternelles dont une bilingue franco-anglais Greenfield</div>
+        </div>
+        <div class="commune-stats">
+          <div class="cstat"><span class="cstat-val or">~4 600€/m²</span><span class="cstat-key">Prix</span></div>
+          <div class="cstat"><span class="cstat-val vert">~108m²</span><span class="cstat-key">Surface à 500k€</span></div>
+          <div class="cstat"><span class="cstat-val bleu">TER 12min + bus 31 8min</span><span class="cstat-key">Elisa → Saint-Paul (~28min)</span></div>
+          <div class="cstat"><span class="cstat-val">15 min</span><span class="cstat-key">Jérémie → Limonest</span></div>
+        </div>
+        <div class="alerte alerte-rouge">⚠ Exclure zone rouge PPRI (quais, île Roy). Vérifier géorisques.gouv.fr avant toute visite.</div>
+      </div>
+    </div>
+
+    
+    <div class="commune-card">
+      <div class="commune-aside">
+        <div class="commune-rang">03</div>
+        <div class="commune-nom">La Tour-de-Salvagny</div>
+        <div class="commune-tagline">"C22 direct 17min — meilleur transport de la liste"</div>
+        <div class="commune-badges">
+          <span class="badge b-vert">C22 direct 17min — record</span>
+          <span class="badge b-bleu">Vignes Beaujolais</span>
+          <span class="badge b-vert">✓ Crèche + école sur place</span>
+        </div>
+      </div>
+      <div class="commune-body">
+        <div class="commune-raisons">
+          <div class="raison">Meilleur temps transport de toute la liste — C22 direct depuis la gare au village, 17 min → Saint-Paul</div>
+          <div class="raison">EAJE crèche + école maternelle sur place — aucune contrainte logistique bébé</div>
+          <div class="raison">Vignes Beaujolais — ruisseaux de coteau — vue sur collines</div>
+          <div class="raison">Gare au village — Elisa n'a pas besoin de voiture</div>
+        </div>
+        <div class="commune-stats">
+          <div class="cstat"><span class="cstat-val or">~3 800€/m²</span><span class="cstat-key">Prix</span></div>
+          <div class="cstat"><span class="cstat-val vert">~131m²</span><span class="cstat-key">Surface à 500k€</span></div>
+          <div class="cstat"><span class="cstat-val bleu">C22 direct gare au village (17min)</span><span class="cstat-key">Elisa → Saint-Paul — meilleur temps</span></div>
+          <div class="cstat"><span class="cstat-val">20 min</span><span class="cstat-key">Jérémie → Limonest</span></div>
+        </div>
+        <div class="alerte alerte-ambre">🏗 Zone en fort développement — vérifier PLU des parcelles voisines avant toute offre. Critère vis-à-vis à risque.</div>
+      </div>
+    </div>
+
+<div class="commune-card">
+      <div class="commune-aside">
+        <div class="commune-rang">04</div>
+        <div class="commune-nom">Couzon-au-Mont-d'Or</div>
+        <div class="commune-tagline">"L'angle mort — même qualité, prix -20%"</div>
+        <div class="commune-badges">
+          <span class="badge b-bleu">Saône en vue</span>
+          <span class="badge b-vert">TER direct</span>
+          <span class="badge b-gris">Moins connu</span>
+          <span class="badge b-vert">✓ Crèche + école sur place</span>
+        </div>
+      </div>
+      <div class="commune-body">
+        <div class="commune-raisons">
+          <div class="raison">Même arc val de Saône que Collonges — 20% moins cher pour un cadre quasi identique</div>
+          <div class="raison">Gare TER au village, 13 min → Perrache, 24 trains/jour</div>
+          <div class="raison">Crèche People&Baby (22 berceaux) + école maternelle Reverchon sur place</div>
+          <div class="raison">La Saône en vue selon l'emplacement — même potentiel de lever de soleil</div>
+        </div>
+        <div class="commune-stats">
+          <div class="cstat"><span class="cstat-val or">~3 700€/m²</span><span class="cstat-key">Prix</span></div>
+          <div class="cstat"><span class="cstat-val vert">~135m²</span><span class="cstat-key">Surface à 500k€</span></div>
+          <div class="cstat"><span class="cstat-val bleu">TER 13min + bus 31 8min</span><span class="cstat-key">Elisa → Saint-Paul (~30min)</span></div>
+          <div class="cstat"><span class="cstat-val">15 min</span><span class="cstat-key">Jérémie → Limonest</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="commune-card">
+      <div class="commune-aside">
+        <div class="commune-rang">05</div>
+        <div class="commune-nom">Civrieux-d'Azergues</div>
+        <div class="commune-tagline">"Entre deux mondes — Monts d'Or et Beaujolais"</div>
+        <div class="commune-badges">
+          <span class="badge b-bleu">Azergues proche</span>
+          <span class="badge b-or">Vue collines</span>
+          <span class="badge b-gris">Lozanne 5min</span>
+          <span class="badge b-vert">✓ École privée + crèche Chazay 2min</span>
+        </div>
+      </div>
+      <div class="commune-body">
+        <div class="commune-raisons">
+          <div class="raison">Position charnière — vues vers les Monts d'Or à l'est et le Beaujolais à l'ouest</div>
+          <div class="raison">Lozanne à 5 min en voiture : TER C22 direct Saint-Paul en 18 min (~23 min total)</div>
+          <div class="raison">École catholique publique sur place + crèche La Ribambelle à Chazay (2 min voiture)</div>
+          <div class="raison">Azergues à proximité — ruisseaux de coteau selon les propriétés</div>
+        </div>
+        <div class="commune-stats">
+          <div class="cstat"><span class="cstat-val or">~3 300€/m²</span><span class="cstat-key">Prix</span></div>
+          <div class="cstat"><span class="cstat-val vert">~151m²</span><span class="cstat-key">Surface à 500k€</span></div>
+          <div class="cstat"><span class="cstat-val bleu">Voiture 5min + C22 18min</span><span class="cstat-key">Elisa → Saint-Paul (~23min)</span></div>
+          <div class="cstat"><span class="cstat-val">18 min</span><span class="cstat-key">Jérémie → Limonest</span></div>
+        </div>
+        <div class="alerte alerte-ambre">🏗 Zone en développement — vérifier PLU des parcelles voisines avant toute offre.</div>
+        <div class="alerte alerte-ambre">Certains quartiers traversés par une départementale — vérifier ambiance sonore du bien précis.</div>
+      </div>
+    </div>
+
+        <div class="commune-card">
+      <div class="commune-aside">
+        <div class="commune-rang">06</div>
+        <div class="commune-nom">Chazay-d'Azergues</div>
+        <div class="commune-tagline">"Meilleur équipement famille de la vallée"</div>
+        <div class="commune-badges">
+          <span class="badge b-bleu">Azergues en bord</span>
+          <span class="badge b-vert">Vie village excellente</span>
+          <span class="badge b-vert">✓✓ Crèche + école sur place</span>
+        </div>
+      </div>
+      <div class="commune-body">
+        <div class="commune-raisons">
+          <div class="raison">Meilleure vie de village de la vallée à pied : Super U, bistrot, épicerie italienne, pharmacie, cinéma, marché</div>
+          <div class="raison">Meilleur équipement petite enfance : crèche La Ribambelle sur place + école Jules Verne</div>
+          <div class="raison">L'Azergues borde la commune — berges promenades, ambiance rivière</div>
+          <div class="raison">Prix en baisse de 14% sur 1 an — vendeurs ouverts à négocier</div>
+        </div>
+        <div class="commune-stats">
+          <div class="cstat"><span class="cstat-val or">~3 200€/m²</span><span class="cstat-key">Prix</span></div>
+          <div class="cstat"><span class="cstat-val vert">~156m²</span><span class="cstat-key">Surface à 500k€</span></div>
+          <div class="cstat"><span class="cstat-val bleu">Bus 5min + C22 18min</span><span class="cstat-key">Elisa → Saint-Paul (~25min)</span></div>
+          <div class="cstat"><span class="cstat-val">20 min</span><span class="cstat-key">Jérémie → Limonest</span></div>
+        </div>
+        <div class="alerte alerte-ambre">Bâti dominant pavillonnaire — chercher spécifiquement les maisons anciennes en hauteur du bourg.</div>
+      </div>
+    </div>
+
+    <div class="commune-card">
+      <div class="commune-aside">
+        <div class="commune-rang">07</div>
+        <div class="commune-nom">L'Arbresle</div>
+        <div class="commune-tagline">"Bourg animé — C22 direct — crèches multiples"</div>
+        <div class="commune-badges">
+          <span class="badge b-bleu">Azergues proche</span>
+          <span class="badge b-vert">C22 direct Saint-Paul</span>
+          <span class="badge b-vert">✓✓ Crèches multiples</span>
+        </div>
+      </div>
+      <div class="commune-body">
+        <div class="commune-raisons">
+          <div class="raison">Bourg avec vraie vie à pied : commerces, marché, restaurants, cinéma</div>
+          <div class="raison">Plusieurs crèches et écoles sur place — meilleure offre petite enfance de la branche ouest</div>
+          <div class="raison">C22 direct depuis la gare en ville → Saint-Paul 30 min</div>
+          <div class="raison">Azergues et Brévenne accessibles à vélo depuis le bourg</div>
+        </div>
+        <div class="commune-stats">
+          <div class="cstat"><span class="cstat-val or">~3 200€/m²</span><span class="cstat-key">Prix</span></div>
+          <div class="cstat"><span class="cstat-val vert">~156m²</span><span class="cstat-key">Surface à 500k€</span></div>
+          <div class="cstat"><span class="cstat-val bleu">C22 direct gare en ville (30min)</span><span class="cstat-key">Elisa → Saint-Paul (~32min)</span></div>
+          <div class="cstat"><span class="cstat-val">25 min</span><span class="cstat-key">Jérémie → Limonest</span></div>
+        </div>
+        <div class="alerte alerte-ambre">30min de trajet C22 — le plus long des directs. Peu de bâti de caractère en centre-ville.</div>
+      </div>
+    </div>
+
+    <div class="commune-card">
+      <div class="commune-aside">
+        <div class="commune-rang">08</div>
+        <div class="commune-nom">Saint-Germain-au-Mont-d'Or</div>
+        <div class="commune-tagline">"C22 direct 20min — gare au village"</div>
+        <div class="commune-badges">
+          <span class="badge b-vert">C22 direct Saint-Paul 20min</span>
+          <span class="badge b-gris">Gare au village</span>
+          <span class="badge b-vert">✓ École maternelle</span>
+        </div>
+      </div>
+      <div class="commune-body">
+        <div class="commune-raisons">
+          <div class="raison">Gare C22 au village — direct Saint-Paul en 20 min, zéro voiture pour Elisa</div>
+          <div class="raison">École maternelle Françoise Dolto sur place</div>
+          <div class="raison">15 min Limonest — le meilleur de la liste pour toi</div>
+          <div class="raison">Prix corrects pour la proximité et le transport</div>
+        </div>
+        <div class="commune-stats">
+          <div class="cstat"><span class="cstat-val or">~3 800€/m²</span><span class="cstat-key">Prix</span></div>
+          <div class="cstat"><span class="cstat-val vert">~131m²</span><span class="cstat-key">Surface à 500k€</span></div>
+          <div class="cstat"><span class="cstat-val bleu">C22 direct gare au village (20min)</span><span class="cstat-key">Elisa → Saint-Paul (~22min)</span></div>
+          <div class="cstat"><span class="cstat-val">15 min</span><span class="cstat-key">Jérémie → Limonest</span></div>
+        </div>
+        <div class="alerte alerte-rouge">Aucune eau, aucune vue panoramique, aucun caractère architectural. Entre en top 10 uniquement sur le transport et la petite enfance.</div>
+      </div>
+    </div>
+
+    <div class="commune-card">
+      <div class="commune-aside">
+        <div class="commune-rang">09</div>
+        <div class="commune-nom">Chessy-les-Mines</div>
+        <div class="commune-tagline">"Azergues + crèche + prix les plus bas"</div>
+        <div class="commune-badges">
+          <span class="badge b-bleu">Azergues</span>
+          <span class="badge b-or">Prix très bas</span>
+          <span class="badge b-vert">✓ Crèche sur place</span>
+        </div>
+      </div>
+      <div class="commune-body">
+        <div class="commune-raisons">
+          <div class="raison">Prix parmi les plus bas de la sélection — ~185m² à 500k€, la plus grande surface possible</div>
+          <div class="raison">Crèche Le Petit Chessillon sur place</div>
+          <div class="raison">L'Azergues à proximité — ambiance vallée</div>
+          <div class="raison">Village préservé et calme</div>
+        </div>
+        <div class="commune-stats">
+          <div class="cstat"><span class="cstat-val or">~2 700€/m²</span><span class="cstat-key">Prix</span></div>
+          <div class="cstat"><span class="cstat-val vert">~185m²</span><span class="cstat-key">Surface à 500k€</span></div>
+          <div class="cstat"><span class="cstat-val bleu">Voiture 15min + C22 18min</span><span class="cstat-key">Elisa → Saint-Paul (~35min)</span></div>
+          <div class="cstat"><span class="cstat-val">25 min</span><span class="cstat-key">Jérémie → Limonest</span></div>
+        </div>
+        <div class="alerte alerte-ambre">35min → Saint-Paul — limite haute. Vie de village très faible. À considérer uniquement si le budget surface prime sur tout.</div>
+      </div>
+    </div>
+
+    <div class="commune-card">
+      <div class="commune-aside">
+        <div class="commune-rang">10</div>
+        <div class="commune-nom">Châtillon d'Azergues</div>
+        <div class="commune-tagline">"Calme absolu — Azergues traverse — château"</div>
+        <div class="commune-badges">
+          <span class="badge b-bleu">Azergues traverse</span>
+          <span class="badge b-or">Prix très bas</span>
+          <span class="badge b-gris">Château médiéval</span>
+        </div>
+      </div>
+      <div class="commune-body">
+        <div class="commune-raisons">
+          <div class="raison">L'Azergues traverse la commune — eau garantie, berges accessibles à pied</div>
+          <div class="raison">Château médiéval dominant le village — cachet architectural réel</div>
+          <div class="raison">Prix parmi les plus bas — ~185m² à 500k€</div>
+          <div class="raison">Village préservé, calme absolu, peu de trafic</div>
+        </div>
+        <div class="commune-stats">
+          <div class="cstat"><span class="cstat-val or">~2 700€/m²</span><span class="cstat-key">Prix</span></div>
+          <div class="cstat"><span class="cstat-val vert">~185m²</span><span class="cstat-key">Surface à 500k€</span></div>
+          <div class="cstat"><span class="cstat-val bleu">Voiture 12min + C22 18min</span><span class="cstat-key">Elisa → Saint-Paul (~32min)</span></div>
+          <div class="cstat"><span class="cstat-val">22 min</span><span class="cstat-key">Jérémie → Limonest</span></div>
+        </div>
+        <div class="alerte alerte-ambre">Crèche à Chessy ou Chazay (5-8min voiture). Vie de village très faible — village dortoir en semaine.</div>
+      </div>
+    </div>
+
+
+    <div class="commune-card">
+      <div class="commune-aside">
+        <div class="commune-rang">06</div>
+        <div class="commune-nom">Chazay-d'Azergues</div>
+        <div class="commune-tagline">"Le bourg qui a tout — si on trouve la bonne maison"</div>
+        <div class="commune-badges">
+          <span class="badge b-bleu">Azergues en bord</span>
+          <span class="badge b-vert">Vie village excellente à pied</span>
+          <span class="badge b-vert">✓✓ Crèche + école sur place</span>
+        </div>
+      </div>
+      <div class="commune-body">
+        <div class="commune-raisons">
+          <div class="raison">Meilleure vie de village à pied de la vallée : Super U, bistrot, épicerie italienne, pharmacie, cinéma, marché</div>
+          <div class="raison">Meilleur équipement petite enfance : crèche La Ribambelle sur place + école Jules Verne</div>
+          <div class="raison">L'Azergues borde la commune — berges promenades, ambiance rivière</div>
+          <div class="raison">Prix en baisse de 14% sur 1 an — vendeurs ouverts à négocier</div>
+        </div>
+        <div class="commune-stats">
+          <div class="cstat"><span class="cstat-val or">~3 200€/m²</span><span class="cstat-key">Prix</span></div>
+          <div class="cstat"><span class="cstat-val vert">~156m²</span><span class="cstat-key">Surface à 500k€</span></div>
+          <div class="cstat"><span class="cstat-val bleu">Bus 5min + C22 18min</span><span class="cstat-key">Elisa → Saint-Paul (~25min)</span></div>
+          <div class="cstat"><span class="cstat-val">20 min</span><span class="cstat-key">Jérémie → Limonest</span></div>
+        </div>
+        <div class="alerte alerte-ambre">Bâti dominant = pavillonnaire. Chercher spécifiquement les maisons anciennes en hauteur du bourg.</div>
+      </div>
+    </div>
+
+    <div class="commune-card">
+      <div class="commune-aside">
+        <div class="commune-rang">07</div>
+        <div class="commune-nom">L'Arbresle</div>
+        <div class="commune-tagline">"Vrai bourg de vie — C22 direct Saint-Paul"</div>
+        <div class="commune-badges">
+          <span class="badge b-bleu">Azergues proche</span>
+          <span class="badge b-vert">C22 direct 30min</span>
+          <span class="badge b-vert">✓✓ Crèches + écoles multiples</span>
+        </div>
+      </div>
+      <div class="commune-body">
+        <div class="commune-raisons">
+          <div class="raison">Vrai bourg animé avec vie à pied complète : commerces, marché, restaurants, médecins</div>
+          <div class="raison">Plusieurs crèches et écoles — meilleure offre petite enfance de l'ouest lyonnais après Chazay</div>
+          <div class="raison">C22 direct depuis la gare en ville → Saint-Paul 30 min — sans voiture pour Elisa</div>
+          <div class="raison">L'Azergues à proximité — voie verte le long de la rivière jusqu'à Lozanne</div>
+        </div>
+        <div class="commune-stats">
+          <div class="cstat"><span class="cstat-val or">~3 200€/m²</span><span class="cstat-key">Prix</span></div>
+          <div class="cstat"><span class="cstat-val vert">~156m²</span><span class="cstat-key">Surface à 500k€</span></div>
+          <div class="cstat"><span class="cstat-val bleu">C22 direct 30min</span><span class="cstat-key">Elisa → Saint-Paul</span></div>
+          <div class="cstat"><span class="cstat-val">25 min</span><span class="cstat-key">Jérémie → Limonest</span></div>
+        </div>
+        <div class="alerte alerte-ambre">Peu de bâti de caractère dans le centre — chercher les maisons de coteau en périphérie immédiate du bourg.</div>
+      </div>
+    </div>
+
+    <div class="commune-card">
+      <div class="commune-aside">
+        <div class="commune-rang">08</div>
+        <div class="commune-nom">Chessy-les-Mines</div>
+        <div class="commune-tagline">"Pierres dorées + crèche + eau — le prix en moins"</div>
+        <div class="commune-badges">
+          <span class="badge b-bleu">Azergues</span>
+          <span class="badge b-or">Pierres dorées</span>
+          <span class="badge b-vert">✓ Crèche sur place</span>
+          <span class="badge b-gris">Prix très bas</span>
+        </div>
+      </div>
+      <div class="commune-body">
+        <div class="commune-raisons">
+          <div class="raison">Crèche Le Petit Chessillon sur place — un des rares villages de la vallée à en avoir une</div>
+          <div class="raison">Bâti authentique en pierres dorées du Beaujolais — cachet réel, peu de pavillonnaire</div>
+          <div class="raison">L'Azergues traverse le territoire — ruisseaux affluents possibles dans les jardins</div>
+          <div class="raison">Prix très bas à ~2 700€/m² — ~185m² à 500k€, rare à ce niveau de qualité</div>
+        </div>
+        <div class="commune-stats">
+          <div class="cstat"><span class="cstat-val or">~2 700€/m²</span><span class="cstat-key">Prix</span></div>
+          <div class="cstat"><span class="cstat-val vert">~185m²</span><span class="cstat-key">Surface à 500k€</span></div>
+          <div class="cstat"><span class="cstat-val bleu">Voiture 15min + C22 18min</span><span class="cstat-key">Elisa → Saint-Paul (~35min)</span></div>
+          <div class="cstat"><span class="cstat-val">25 min</span><span class="cstat-key">Jérémie → Limonest</span></div>
+        </div>
+        <div class="alerte alerte-ambre">35 min → Saint-Paul — limit acceptable. Vérifier le trajet heure de pointe depuis Lozanne.</div>
+      </div>
+    </div>
+
+    <div class="commune-card">
+      <div class="commune-aside">
+        <div class="commune-rang">09</div>
+        <div class="commune-nom">Saint-Romain-au-Mont-d'Or</div>
+        <div class="commune-tagline">"Le sous-côté du val de Saône — même accès, moins cher"</div>
+        <div class="commune-badges">
+          <span class="badge b-bleu">Saône proche</span>
+          <span class="badge b-vert">TER 28min</span>
+          <span class="badge b-gris">Prix corrects</span>
+        </div>
+      </div>
+      <div class="commune-body">
+        <div class="commune-raisons">
+          <div class="raison">Même corridor val de Saône que Collonges/Couzon — même ambiance, -20% de prix</div>
+          <div class="raison">Accès TER via Collonges (8 min bus) : 12 min → Perrache + 8 min bus 31 → Saint-Paul</div>
+          <div class="raison">Saône en vue ou proche selon emplacement — vue et lumière similaires aux voisins</div>
+          <div class="raison">Bâti en pierres dorées sur les hauteurs — quelques maisons de caractère disponibles</div>
+        </div>
+        <div class="commune-stats">
+          <div class="cstat"><span class="cstat-val or">~3 300€/m²</span><span class="cstat-key">Prix</span></div>
+          <div class="cstat"><span class="cstat-val vert">~151m²</span><span class="cstat-key">Surface à 500k€</span></div>
+          <div class="cstat"><span class="cstat-val bleu">Bus 8min + TER 12min + bus 31 8min</span><span class="cstat-key">Elisa → Saint-Paul (~28min)</span></div>
+          <div class="cstat"><span class="cstat-val">18 min</span><span class="cstat-key">Jérémie → Limonest</span></div>
+        </div>
+        <div class="alerte alerte-rouge">👶 Aucune crèche à Saint-Romain — Collonges à 5 min voiture (crèche + 3 écoles).</div>
+      </div>
+    </div>
+
+    <div class="commune-card">
+      <div class="commune-aside">
+        <div class="commune-rang">10</div>
+        <div class="commune-nom">Châtillon d'Azergues</div>
+        <div class="commune-tagline">"Calme absolu + eau + prix — pour les amoureux du silence"</div>
+        <div class="commune-badges">
+          <span class="badge b-bleu">Azergues traverse</span>
+          <span class="badge b-or">Pierres dorées</span>
+          <span class="badge b-gris">Prix très bas</span>
+        </div>
+      </div>
+      <div class="commune-body">
+        <div class="commune-raisons">
+          <div class="raison">L'Azergues traverse le village — ruisseaux affluents, berges, ambiance eau omniprésente</div>
+          <div class="raison">Bâti en pierres dorées avec château médiéval — cachet architectural rare et authentique</div>
+          <div class="raison">Calme absolu — village de taille humaine sans axe passant majeur</div>
+          <div class="raison">Prix très bas à ~2 700€/m² — ~185m² à 500k€, le plus grand espace de la liste</div>
+        </div>
+        <div class="commune-stats">
+          <div class="cstat"><span class="cstat-val or">~2 700€/m²</span><span class="cstat-key">Prix</span></div>
+          <div class="cstat"><span class="cstat-val vert">~185m²</span><span class="cstat-key">Surface à 500k€</span></div>
+          <div class="cstat"><span class="cstat-val bleu">Voiture 12min + C22 18min</span><span class="cstat-key">Elisa → Saint-Paul (~32min)</span></div>
+          <div class="cstat"><span class="cstat-val">22 min</span><span class="cstat-key">Jérémie → Limonest</span></div>
+        </div>
+        <div class="alerte alerte-rouge">👶 Aucune crèche — Chessy ou Chazay à 5-8 min voiture.</div>
+        <div class="alerte alerte-ambre">Vie de village faible sur place — tout se fait en voiture. Vérifier la tolérance à l'isolement.</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ANGLES MORTS -->
+<div class="section" id="angles">
+  <div class="section-header">
+    <span class="section-num">05</span>
+    <h2 class="section-title">Angles morts</h2>
+  </div>
+  <div class="section-rule"></div>
+  <p class="section-sub">Ce que les annonces ne montrent pas — à vérifier avant toute offre</p>
+  <div class="angles-grid">
+    <div class="angle-card">
+      <div class="angle-num">01</div>
+      <div class="angle-titre">Crèche — critère éliminatoire</div>
+      <div class="angle-desc">Avec un bébé sept. 2026, la crèche passe avant la vue. Belmont, Châtillon, Rochetaillée : aucune crèche sur place, liste d'attente 12-18 mois sur les structures proches. Chazay et Collonges sont les mieux équipés. La Tour-de-Salvagny a sa propre crèche EAJE.</div>
+      <div class="angle-action">→ Appeler la mairie avant toute visite sérieuse</div>
+    </div>
+    <div class="angle-card">
+      <div class="angle-num">02</div>
+      <div class="angle-titre">Brouillard inverse en hiver</div>
+      <div class="angle-desc">Les villages perchés (Belmont 320m, Charnay, Sarcey) sont souvent dans la couche de brouillard inverse nov→mars — quand Lyon a du soleil, le hameau est dans la grisaille. La vue "coucher de soleil rosé" est un critère estival. Collonges et Couzon (bord Saône, altitude ~170m) sont bien moins exposés.</div>
+      <div class="angle-action">→ Exiger une visite en hiver ou par temps de brouillard</div>
+    </div>
+    <div class="angle-card">
+      <div class="angle-num">03</div>
+      <div class="angle-titre">Vis-à-vis futur — PLU</div>
+      <div class="angle-desc">Zéro vis-à-vis aujourd'hui ne garantit rien. La Tour-de-Salvagny, Lentilly, Chasselay sont en zones de développement actif dans le SCOT métropolitain. Le terrain vide derrière le jardin peut être constructible zone UB ou AU. Un voisin dans 3 ans divise par deux la valeur du critère.</div>
+      <div class="angle-action">→ Consulter PLU parcelle par parcelle sur geoportail-urbanisme.fr</div>
+    </div>
+    <div class="angle-card">
+      <div class="angle-num">04</div>
+      <div class="angle-titre">Temps voiture en heure de pointe</div>
+      <div class="angle-desc">Tous les temps indiqués sont hors bouchons. Depuis Belmont ou Chazay vers Limonest à 8h30, la D30 et le col de la Luère peuvent doubler le temps. Le "20 min" devient 35-40 min certains matins. Les communes C22 directes (Saint-Germain, Civrieux) immunisent Elisa de ce risque.</div>
+      <div class="angle-action">→ Tester le trajet un mardi matin à 8h30 avant toute offre</div>
+    </div>
+  </div>
+</div>
+
+<!-- TABLEAU COMMUNES -->
+<div class="section" id="communes">
+  <div class="section-header">
+    <span class="section-num">06</span>
+    <h2 class="section-title">Toutes les communes scannées</h2>
+  </div>
+  <div class="section-rule"></div>
+  <div class="tab-wrap">
+    <div class="tab-controls">
+      <button class="filt on" onclick="setF('tous',this,'t1','ct1')">Toutes</button>
+      <button class="filt" onclick="setF('nord-ouest',this,'t1','ct1')">Nord-ouest</button>
+      <button class="filt" onclick="setF('nord',this,'t1','ct1')">Nord Saône</button>
+      <button class="filt" onclick="setF('ouest',this,'t1','ct1')">Ouest / C22</button>
+      <button class="filt" onclick="setF('score4',this,'t1','ct1')">Score 4+</button>
+      <button class="filt" onclick="setF('creche',this,'t1','ct1')">Crèche ✓✓</button>
+      <span class="tab-count" id="ct1"></span>
+    </div>
+    <div class="tab-scroll">
+      <table id="t1">
+        <thead><tr>
+          <th onclick="srt(0,'t1')">Commune</th>
+          <th onclick="srt(1,'t1')">Direction</th>
+          <th onclick="srt(2,'t1')">Prix m²</th>
+          <th onclick="srt(3,'t1')">m² à 500k€</th>
+          <th onclick="srt(4,'t1')">Score</th>
+          <th>Eau</th>
+          <th>Vue</th>
+          <th>Vie village</th>
+          <th>Crèche / École</th>
+          <th onclick="srt(9,'t1')">→ Limonest</th>
+          <th onclick="srt(10,'t1')">→ Saint-Paul TC</th>
+          <th>Verdict</th>
+        </tr></thead>
+        <tbody id="b1"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- TABLEAU TRANSPORT -->
+<div class="section" id="transport">
+  <div class="section-header">
+    <span class="section-num">07</span>
+    <h2 class="section-title">Transport Elisa → Saint-Paul</h2>
+  </div>
+  <div class="section-rule"></div>
+  <div class="tab-wrap">
+    <div class="tab-controls">
+      <button class="filt on" onclick="setF2('tous',this)">Toutes</button>
+      <button class="filt" onclick="setF2('c22',this)">TER C22 direct</button>
+      <button class="filt" onclick="setF2('ter',this)">TER Perrache</button>
+      <button class="filt" onclick="setF2('top30',this)">≤ 30 min</button>
+    </div>
+    <div class="tab-scroll">
+      <table id="t2">
+        <thead><tr>
+          <th onclick="srt2(0)">Commune</th>
+          <th onclick="srt2(1)">Total TC</th>
+          <th>Mode</th>
+          <th>Étape 1 — accès gare</th>
+          <th>Étape 2 — train</th>
+          <th>Étape 3</th>
+          <th>Arrivée</th>
+          <th>Fréquence</th>
+          <th onclick="srt2(8)">Voiture</th>
+          <th>Verdict</th>
+        </tr></thead>
+        <tbody id="b2"></tbody>
+      </table>
+    </div>
+  </div>
+  <p style="font-size:10px;color:var(--ink-60);margin-top:0.6rem;">TER C22 = tram-train terminus Lyon Saint-Paul (ligne ouest lyonnais, départ direct). Val de Saône = TER → Perrache puis bus 31 ~8min → Saint-Paul. Temps TC = porte-à-porte incluant attentes.</p>
+</div>
+
+</div><!-- /page -->
+
+<footer>Projet RP Jérémie & Elisa — Document de travail — Avril 2026</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.js"></script>
+<script>
+// DONNÉES COMMUNES
+// [nom, direction, prix_m2, m2_500k, score, eau, vue, vie_village, creche, limonest_min, sp_min, verdict, type_transport]
+const communes = [
+  ["Belmont-d'Azergues","nord-ouest",2900,172,5,"Azergues bas","Panoramique vignes","Faible (Chazay 5min voiture)","⚠ Aucune — Chazay 5min voiture",20,28,"Rêve complet","mixte"],
+  ["Civrieux-d'Azergues","nord-ouest",3300,151,4,"Azergues","Vue collines","Correcte","✓ École privée + crèche Chazay 2min",18,23,"Très bon","mixte"],
+  ["Chazay-d'Azergues","nord-ouest",3200,156,4,"Azergues bords","Coteaux Beaujolais","Excellente à pied","✓✓ Crèche Ribambelle + école Jules Verne",20,25,"Bon compromis","mixte"],
+  ["Châtillon d'Azergues","nord-ouest",2700,185,4,"Azergues traverse","Vallée","Faible","⚠ Chessy ou Chazay 5-8min",22,32,"Calme + eau","mixte"],
+  ["Chessy-les-Mines","nord-ouest",2700,185,4,"Azergues","Collines","Faible","✓ Crèche Petit Chessillon sur place",25,35,"Caractère + eau","mixte"],
+  ["Charnay","nord-ouest",3200,156,4,"Azergues proche","Panoramique 360°","Animée","⚠ L'Arbresle 12min",25,40,"Beaujolais","mixte"],
+  ["Chasselay","nord-ouest",4000,125,3,"Ruisseaux coteau","Vue Alpes/plaine","Correcte","⚠ Lozanne ou Limonest 8-10min",10,32,"Bon pratique","mixte"],
+  ["Collonges-au-Mont-d'Or","nord",4600,108,5,"Saône","Saône lever soleil","Oui à pied","✓✓ Crèche 44p + 3 écoles maternelles",15,28,"Rêve Saône","ter"],
+  ["Saint-Romain-au-Mont-d'Or","nord",3300,151,4,"Saône proche","Saône + collines","Faible","⚠ Pas de crèche — Collonges 5min",18,28,"Sous-coté","ter"],
+  ["Couzon-au-Mont-d'Or","nord",3700,135,4,"Saône","Saône","Correcte","✓ Crèche 22p + école Reverchon",15,30,"Angle mort clé","ter"],
+  ["Rochetaillée-sur-Saône","nord",4000,125,3,"Saône","Saône","Faible","⚠ Pas de crèche — Couzon 5min",18,28,"Village calme","ter"],
+  ["Fleurieu-sur-Saône","nord",3000,166,3,"Saône","Correcte","Faible","⚠ Neuville-sur-Saône 5min",20,35,"Méconnu","ter"],
+  ["Albigny-sur-Saône","nord",3300,151,3,"Saône","Correcte","Faible","⚠ Neuville-sur-Saône 5min",22,37,"Accessible","ter"],
+  ["Saint-Cyr-au-Mont-d'Or","nord",5900,84,4,"Aucune","Monts d'Or","Excellente à pied","✓ Crèche collective + école maternelle",15,35,"Cher mais top","c22-vaise"],
+  ["Saint-Didier-au-Mont-d'Or","nord",5300,94,3,"Aucune","Collines","Correcte","✓ Crèche La Lyre + école",12,35,"Résidentiel","c22-vaise"],
+  ["Saint-Germain-au-Mont-d'Or","nord",3800,131,4,"Aucune","Correcte","Correcte","✓ École maternelle Françoise Dolto",15,22,"Pratique","c22-direct"],
+  ["Poleymieux-au-Mont-d'Or","nord-ouest",4000,125,4,"Ruisseaux","Exceptionnelle Alpes","Faible","⚠ Collonges 8min",12,40,"Vue de rêve","voiture"],
+  ["L'Arbresle","ouest",3200,156,3,"Azergues proche","Correcte","Bonne bourg","✓✓ Plusieurs crèches + écoles",25,32,"Bourg animé","c22-direct"],
+  ["Savigny","ouest",2800,178,3,"Ruisseaux","Collines","Faible","⚠ L'Arbresle 10min",30,42,"Calme pierres","mixte"],
+  ["Sarcey","ouest",2800,178,4,"Ruisseaux","Vignes beaujolais","Faible","⚠ L'Arbresle 12min",30,44,"Authenticité","mixte"],
+  ["Tassin-la-Demi-Lune","ouest",4200,119,2,"Aucune","Limitée","Bonne — bourg animé","✓✓ Nombreuses crèches et écoles",18,26,"Urbain dense","c22-direct"],
+  ["Charbonnières-les-Bains","ouest",5000,100,3,"Aucune","Collines boisées","Correcte","✓ Crèche + école maternelle",20,23,"Standing élevé","c22-direct"],
+  ["La Tour-de-Salvagny","ouest",3800,131,4,"Ruisseaux","Vignes Beaujolais","Correcte","✓ EAJE + école maternelle sur place",20,18,"Bon compromis","c22-direct"],
+  ["Lentilly","ouest",3200,156,3,"Ruisseaux","Collines","Faible","⚠ La Tour-de-Salvagny ou L'Arbresle 5-8min",25,14,"Calme","c22-direct"],
+  ["Fleurieux-sur-l'Arbresle","ouest",2900,172,3,"Azergues proche","Collines","Faible","⚠ L'Arbresle 5min",28,36,"Rural","c22-direct"],
+  ["Sain-Bel","ouest",2500,200,3,"Brévenne rivière","Collines","Faible — bourg","⚠ L'Arbresle 8min",30,41,"Rural + eau","c22-direct"],
+  ["Neuville-sur-Saône","nord",3500,142,2,"Saône","Correcte","Bourg urbain","✓✓ Ville complète",25,40,"Éliminé","ter"],
+  ["Grézieu-la-Varenne","ouest",3500,142,2,"Aucune","Monts Lyon","Correcte","⚠ Écully ou Brindas",25,50,"Sans caractère","autre"],
+  ["Dardilly","ouest",4000,125,1,"Aucune","Aucune","Dortoir","✓ Crèche Dardy'Gônes",10,45,"Éliminé","autre"],
+  ["Francheville","ouest",3800,131,1,"Aucune","Aucune","Urbaine","✓✓ Ville complète",20,50,"Éliminé","autre"],
+  ["Écully","ouest",4500,111,1,"Aucune","Aucune","Urbaine","✓✓ Ville complète",15,40,"Éliminé","autre"],
+];
+
+const transport = [
+  ["Saint-Germain-au-Mont-d'Or",22,"TER C22 direct","Gare au village (0min)","C22 → Saint-Paul (20min)","—","Saint-Paul","15-30 min",18,"Excellent","c22"],
+  ["La Tour-de-Salvagny",18,"TER C22 direct","Gare au village (0min)","C22 → Saint-Paul (17min)","—","Saint-Paul","15-30 min",18,"Excellent","c22"],
+  ["Lentilly",14,"TER C22 direct","Gare Lentilly (0min)","C22 → Saint-Paul (13min)","—","Saint-Paul","20 min HP",22,"Excellent","c22"],
+  ["Charbonnières-les-Bains",23,"TER C22 direct","Gare au village (0min)","C22 → Saint-Paul (22min)","—","Saint-Paul","15-30 min",18,"Excellent","c22"],
+  ["Civrieux-d'Azergues",23,"Voiture + C22","Voiture → Lozanne (5min)","C22 → Saint-Paul (18min)","—","Saint-Paul","15-30 min",22,"Excellent","c22"],
+  ["Chazay-d'Azergues",25,"Bus + C22","Bus → Lozanne (5min)","C22 → Saint-Paul (18min)","—","Saint-Paul","15-30 min",22,"Excellent","c22"],
+  ["Tassin-la-Demi-Lune",26,"TER C22 direct","Gare Tassin (0min)","C22 → Saint-Paul (25min)","—","Saint-Paul","15 min HP",15,"Très bon","c22"],
+  ["Belmont-d'Azergues",28,"Voiture + C22","Voiture → Lozanne (8min)","C22 → Saint-Paul (18min)","—","Saint-Paul","15-30 min",25,"Très bon","c22"],
+  ["Rochetaillée-sur-Saône",28,"Bus + TER + bus 31","Bus → Collonges (8min)","TER → Perrache (12min)","Bus 31 → Saint-Paul (8min)","Perrache","Régulier",20,"Très bon","ter"],
+  ["Collonges-au-Mont-d'Or",28,"TER + bus 31","Gare au village (0min)","TER → Perrache (12min)","Bus 31 → Saint-Paul (8min)","Perrache","20+ trains/j",17,"Très bon","ter"],
+  ["Saint-Romain-au-Mont-d'Or",28,"Bus + TER + bus 31","Bus → Collonges (8min)","TER → Perrache (12min)","Bus 31 → Saint-Paul (8min)","Perrache","Régulier",19,"Très bon","ter"],
+  ["Couzon-au-Mont-d'Or",30,"TER + bus 31","Gare au village (0min)","TER → Perrache (13min)","Bus 31 → Saint-Paul (8min)","Perrache","24 trains/j",18,"Bon","ter"],
+  ["Châtillon d'Azergues",32,"Voiture + C22","Voiture → Lozanne (12min)","C22 → Saint-Paul (18min)","—","Saint-Paul","15-30 min",30,"Bon","c22"],
+  ["Chasselay",32,"Bus + C22","Bus → St-Germain (9min)","C22 → Saint-Paul (20min)","—","Saint-Paul","Limité",14,"Bon","c22"],
+  ["L'Arbresle",32,"TER C22 direct","Gare en ville (0min)","C22 → Saint-Paul (30min)","—","Saint-Paul","15-30 min",28,"Bon","c22"],
+  ["Chessy-les-Mines",35,"Voiture + C22","Voiture → Lozanne (15min)","C22 → Saint-Paul (18min)","—","Saint-Paul","15-30 min",32,"Correct","c22"],
+  ["Fleurieu-sur-Saône",35,"TER + bus 31","Gare au village (0min)","TER → Perrache (18min)","Bus 31 → Saint-Paul (8min)","Perrache","Régulier",24,"Correct","ter"],
+  ["Saint-Cyr-au-Mont-d'Or",35,"Bus + C22 via Vaise","Bus 71 → Gare de Vaise (12min)","C22 → Saint-Paul (5min)","—","Saint-Paul via Vaise","Bus fréquent",17,"Correct","c22"],
+  ["Saint-Didier-au-Mont-d'Or",35,"Bus + C22 via Vaise","Bus 22/23 → Gare de Vaise (15min)","C22 → Saint-Paul (5min)","—","Saint-Paul via Vaise","Bus fréquent",14,"Correct","c22"],
+  ["Albigny-sur-Saône",37,"TER + bus 31","Gare au village (0min)","TER → Perrache (19min)","Bus 31 → Saint-Paul (8min)","Perrache","Régulier",27,"Correct","ter"],
+  ["Charnay",40,"Voiture + C22","Voiture → Lozanne (20min)","C22 → Saint-Paul (18min)","—","Saint-Paul","15-30 min",38,"Long","c22"],
+  ["Neuville-sur-Saône",40,"TER + bus 31","Gare en ville (0min)","TER → Perrache (22min)","Bus 31 → Saint-Paul (8min)","Perrache","Régulier",30,"Long","ter"],
+  ["Savigny",42,"Voiture + C22","Voiture → L'Arbresle (10min)","C22 → Saint-Paul (30min)","—","Saint-Paul","15-30 min",40,"Long","c22"],
+  ["Sarcey",44,"Voiture + C22","Voiture → L'Arbresle (12min)","C22 → Saint-Paul (30min)","—","Saint-Paul","15-30 min",42,"Long","c22"],
+  ["Fleurieux-sur-l'Arbresle",36,"TER C22 direct","Gare au village (0min)","C22 → Saint-Paul (35min)","—","Saint-Paul","20 min",26,"Correct","c22"],
+  ["Sain-Bel",41,"TER C22 direct","Gare Sain-Bel (0min)","C22 → Saint-Paul (40min)","—","Saint-Paul","20 min",30,"Long","c22"],
+  ["Poleymieux-au-Mont-d'Or",40,"Bus + C22 via Vaise","Bus → Gare de Vaise (20min)","C22 → Saint-Paul (5min)","—","Saint-Paul via Vaise","Bus limité",13,"Correct","c22"],
+  ["Dardilly",45,"Bus","Bus (10min)","TCL → Gorge-de-Loup (35min)","—","Gorge-de-Loup","Limité",10,"Éliminé","autre"],
+  ["Francheville",50,"Bus TCL","Bus TCL (15min)","TCL → centre (35min)","—","Gorge-de-Loup","Régulier",20,"Éliminé","autre"],
+  ["Écully",40,"Bus TCL","Bus TCL (10min)","TCL → centre (30min)","—","Gorge-de-Loup","Régulier",15,"Éliminé","autre"],
+];
+
+// ÉTAT TABLEAUX
+const st1 = {col:4, asc:false, fil:'tous'};
+const st2 = {col:1, asc:true, fil:'tous'};
+
+function tCl(m) {
+  if(!m||m>=999) return 't-bad';
+  if(m<=23) return 't-top';
+  if(m<=30) return 't-ok';
+  if(m<=38) return 't-mid';
+  return 't-bad';
+}
+function sCl(s){return s>=5?'s5':s>=4?'s4':s>=3?'s3':'s2';}
+function bd(t,cls){return `<span class="badge ${cls}">${t}</span>`;}
+function eauB(v){return v==='Aucune'?bd(v,'b-gris'):bd(v,'b-bleu');}
+function vueB(v){return(v.includes('Pano')||v.includes('Saône')||v.includes('cept'))?bd(v,'b-vert'):bd(v,'b-gris');}
+function vieB(v){return(v.includes('Excell')||v.includes('Oui')||v.includes('nim')||v.includes('Bonne'))?bd(v,'b-vert'):(v.includes('Faible')||v.includes('Dortoir'))?bd(v,'b-rouge'):bd(v,'b-ambre');}
+function crecheB(v){
+  if(!v||v==='—') return '—';
+  if(v.startsWith('✓✓')) return `<span style="color:var(--green);font-weight:500">✓✓</span> <span style="font-size:10px;color:var(--ink-60)">${v.slice(3)}</span>`;
+  if(v.startsWith('✓')) return `<span style="color:#5a8040;font-weight:500">✓</span> <span style="font-size:10px;color:var(--ink-60)">${v.slice(2)}</span>`;
+  return `<span style="color:var(--amber);font-weight:500">⚠</span> <span style="font-size:10px;color:var(--ink-60)">${v.slice(2)}</span>`;
+}
+function verdB(v){return v.includes('Éliminé')?bd(v,'b-rouge'):(v.includes('Rêve')||v.includes('clé')||v.includes('top'))?bd(v,'b-vert'):bd(v,'b-ambre');}
+
+function setF(fil, btn, tid, cid) {
+  st1.fil = fil;
+  btn.closest('.tab-controls').querySelectorAll('.filt').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  renderT1(cid);
+}
+function setF2(fil, btn) {
+  st2.fil = fil;
+  btn.closest('.tab-controls').querySelectorAll('.filt').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  renderT2();
+}
+function srt(col, tid) {
+  if(st1.col===col) st1.asc=!st1.asc; else{st1.col=col;st1.asc=col===0;}
+  document.querySelectorAll('#'+tid+' thead th').forEach((th,i)=>{th.classList.remove('asc','desc');if(i===col)th.classList.add(st1.asc?'asc':'desc');});
+  renderT1('ct1');
+}
+function srt2(col) {
+  if(st2.col===col) st2.asc=!st2.asc; else{st2.col=col;st2.asc=col===0;}
+  document.querySelectorAll('#t2 thead th').forEach((th,i)=>{th.classList.remove('asc','desc');if(i===col)th.classList.add(st2.asc?'asc':'desc');});
+  renderT2();
+}
+
+function renderT1(cid) {
+  let rows=[...communes];
+  if(st1.fil==='score4') rows=rows.filter(r=>r[4]>=4);
+  else if(st1.fil==='nord-ouest') rows=rows.filter(r=>r[1]==='nord-ouest');
+  else if(st1.fil==='nord') rows=rows.filter(r=>r[1]==='nord');
+  else if(st1.fil==='ouest') rows=rows.filter(r=>r[1]==='ouest');
+  else if(st1.fil==='creche') rows=rows.filter(r=>r[8]&&r[8].startsWith('✓✓'));
+  rows.sort((a,b)=>{let va=a[st1.col],vb=b[st1.col];if(typeof va==='string'){va=va.toLowerCase();vb=vb.toLowerCase();}return st1.asc?(va>vb?1:-1):(va<vb?1:-1);});
+  if(cid) document.getElementById(cid).textContent=rows.length+' commune'+(rows.length>1?'s':'')+' affichée'+(rows.length>1?'s':'');
+  const stars=n=>'★'.repeat(n)+'☆'.repeat(5-n);
+  document.getElementById('b1').innerHTML=rows.map(r=>{
+    const sp=r[10]>=999?'<span class="t-bad">voiture seule</span>':`<span class="${tCl(r[10])}">${r[10]} min</span>`;
+    return `<tr>
+      <td style="font-weight:500;white-space:nowrap">${r[0]}</td>
+      <td>${bd(r[1],'b-gris')}</td>
+      <td>${r[2].toLocaleString()}€</td>
+      <td>~${r[3]}m²</td>
+      <td><span class="${sCl(r[4])}">${stars(r[4])}</span></td>
+      <td>${eauB(r[5])}</td>
+      <td>${vueB(r[6])}</td>
+      <td>${vieB(r[7])}</td>
+      <td style="max-width:200px;line-height:1.4">${crecheB(r[8])}</td>
+      <td>${r[9]} min</td>
+      <td>${sp}</td>
+      <td>${verdB(r[11])}</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderT2() {
+  let rows=[...transport];
+  if(st2.fil==='c22') rows=rows.filter(r=>r[10]==='c22');
+  else if(st2.fil==='ter') rows=rows.filter(r=>r[10]==='ter');
+  else if(st2.fil==='top30') rows=rows.filter(r=>r[1]<=30);
+  rows.sort((a,b)=>{let va=a[st2.col],vb=b[st2.col];if(typeof va==='string'){va=va.toLowerCase();vb=vb.toLowerCase();}return st2.asc?(va>vb?1:-1):(va<vb?1:-1);});
+  function modeB(m){
+    if(m.includes('C22 direct')||m==='TER C22 direct') return bd(m,'b-vert');
+    if(m.includes('Voiture + C22')||m.includes('Bus + C22')) return bd(m,'b-ambre');
+    if(m.includes('TER + bus 31')||m.includes('Bus + TER')) return bd(m,'b-bleu');
+    if(m.includes('Voiture seule')) return bd(m,'b-rouge');
+    return bd(m,'b-gris');
+  }
+  function verd2(v){
+    if(v==='Excellent'||v==='Très bon') return bd(v,'b-vert');
+    if(v==='Bon'||v==='Correct') return bd(v,'b-ambre');
+    return bd(v,'b-rouge');
+  }
+  document.getElementById('b2').innerHTML=rows.map(r=>{
+    const tot=`<span class="${tCl(r[1])}">${r[1]} min</span>`;
+    const e3=r[5]==='—'?'<span style="color:var(--ink-30)">—</span>':`<span style="font-size:10px;color:var(--ink-60)">${r[5]}</span>`;
+    const car=r[8]?`${r[8]} min`:'—';
+    return `<tr>
+      <td style="font-weight:500;white-space:nowrap">${r[0]}</td>
+      <td>${tot}</td>
+      <td>${modeB(r[2])}</td>
+      <td style="font-size:10px;color:var(--ink-60)">${r[3]}</td>
+      <td style="font-size:11px">${r[4]}</td>
+      <td>${e3}</td>
+      <td>${bd(r[6],'b-bleu')}</td>
+      <td style="font-size:10px;color:var(--ink-60)">${r[7]}</td>
+      <td style="color:var(--ink-60)">${car}</td>
+      <td>${verd2(r[9])}</td>
+    </tr>`;
+  }).join('');
+}
+
+renderT1('ct1');
+renderT2();
+
+// CARTE LEAFLET
+const map = L.map('map').setView([45.838,4.740],11);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap',maxZoom:18}).addTo(map);
+
+// ═══════════════════════════════════════════
+// LIGNES FERROVIAIRES
+// ═══════════════════════════════════════════
+
+// Styles
+const styleC22 = {color:'#9a6f2e', weight:3.5, opacity:0.85, dashArray:null};
+const styleC22Loz = {color:'#9a6f2e', weight:2.5, opacity:0.6, dashArray:'6,4'};
+const styleTER = {color:'#3d6b8a', weight:3.5, opacity:0.85};
+
+// — TRONC COMMUN C22 : Saint-Paul → Tassin (partagé par Sain-Bel + Lozanne)
+// Tunnel Loyasse, Gorge de Loup, Écully, Tassin
+L.polyline([
+  [45.7660, 4.8270], // Saint-Paul
+  [45.7680, 4.8220], // sortie tunnel côté Fourvière
+  [45.7720, 4.8100], // tunnel Loyasse (tracé approximatif)
+  [45.7750, 4.8000], // Gorge de Loup
+  [45.7760, 4.7930], // Gorge de Loup gare
+  [45.7730, 4.7850], // Écully-La Demi-Lune
+  [45.7640, 4.7820], // Alaï
+  [45.7613, 4.7773], // Tassin — nœud
+], {...styleC22, weight:4}).addTo(map)
+  .bindPopup('<b style="font-family:Outfit">C22 — Tronc commun</b><br><span style="font-size:11px;color:#777">Saint-Paul → Tassin — partagé par les 3 branches</span>');
+
+// — BRANCHE C22 → SAIN-BEL : Tassin → Charbonnières → La Tour → Lentilly → L'Arbresle → Sain-Bel
+L.polyline([
+  [45.7613, 4.7773], // Tassin
+  [45.7750, 4.7620], // Méridien-La Ferrière (Charbonnières)
+  [45.7785, 4.7441], // Charbonnières-les-Bains
+  [45.8141, 4.7147], // La Tour-de-Salvagny
+  [45.8188, 4.6628], // Lentilly
+  [45.8226, 4.6500], // Lentilly-Charpenay
+  [45.8358, 4.6519], // Fleurieux-sur-l'Arbresle
+  [45.8352, 4.6152], // L'Arbresle
+  [45.8106, 4.5994], // Sain-Bel
+], styleC22).addTo(map)
+  .bindPopup('<b style="font-family:Outfit">C22 → Sain-Bel</b><br><span style="font-size:11px;color:#777">Tassin → Charbonn. → La Tour → Lentilly → L&#39;Arbresle → Sain-Bel</span>');
+
+// — BRANCHE C22 → LOZANNE : Tassin → Dardilly → Chasselay → Lozanne (navette thermique)
+L.polyline([
+  [45.7613, 4.7773], // Tassin
+  [45.7830, 4.7420], // Dardilly-Le Jubin
+  [45.7870, 4.7300], // Dardilly-Les Mouilles
+  [45.8230, 4.7060], // Dommartin-Lissieu
+  [45.8380, 4.7020], // Civrieux d'Azergues (proche)
+  [45.8552, 4.6802], // Lozanne
+], styleC22Loz).addTo(map)
+  .bindPopup('<b style="font-family:Outfit">C22 → Lozanne</b><br><span style="font-size:11px;color:#777;font-style:italic">Navette thermique (non électrifiée) — 1 train/h</span>');
+
+// — LIGNE TER VAL DE SAÔNE : Mâcon → Villefranche → Albigny → Fleurieu → Couzon → Collonges → Vaise → Perrache
+L.polyline([
+  [45.8707, 4.8324], // Albigny-Neuville
+  [45.8631, 4.8456], // Fleurieu-sur-Saône
+  [45.8455, 4.8313], // Couzon-au-Mont-d'Or
+  [45.8405, 4.8352], // Rochetaillée-sur-Saône
+  [45.8376, 4.8243], // Saint-Romain-au-Mont-d'Or
+  [45.8233, 4.8400], // Collonges-Fontaines
+  [45.8000, 4.8350], // Île-Barbe
+  [45.7850, 4.8280], // Lyon-Vaise
+  [45.7750, 4.8260], // approche Perrache
+  [45.7492, 4.8263], // Perrache
+], styleTER).addTo(map)
+  .bindPopup('<b style="font-family:Outfit">TER val de Saône</b><br><span style="font-size:11px;color:#777">Villefranche → Albigny → Couzon → Collonges → Perrache<br>Puis bus 31 (8min) → Saint-Paul</span>');
+
+// Légende lignes sur la carte
+const legendLines = L.control({position:'bottomleft'});
+legendLines.onAdd = () => {
+  const d = L.DomUtil.create('div','');
+  d.style.cssText = 'background:rgba(247,244,239,0.95);padding:10px 14px;border-radius:8px;font-family:Outfit,sans-serif;font-size:11px;border:1px solid #ddd8cc;line-height:2;backdrop-filter:blur(4px)';
+  d.innerHTML = `
+    <div style="font-weight:500;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:#888;margin-bottom:4px">Lignes ferroviaires</div>
+    <div style="display:flex;align-items:center;gap:8px"><span style="display:inline-block;width:20px;height:3px;background:#9a6f2e;border-radius:2px"></span> TER C22 → Saint-Paul direct</div>
+    <div style="display:flex;align-items:center;gap:8px"><span style="display:inline-block;width:20px;height:2px;background:#9a6f2e;border-radius:2px;opacity:0.6;border-top:1px dashed #9a6f2e"></span> C22 → Lozanne (navette)</div>
+    <div style="display:flex;align-items:center;gap:8px"><span style="display:inline-block;width:20px;height:3px;background:#3d6b8a;border-radius:2px"></span> TER val Saône → Perrache</div>
+  `;
+  return d;
+};
+legendLines.addTo(map);
+
+function mkTop(color,label){
+  return L.divIcon({html:`<div style="width:32px;height:32px;border-radius:50%;background:${color};border:2.5px solid white;box-shadow:0 2px 10px rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;font-family:Outfit,sans-serif;font-size:11px;font-weight:500;color:white;">${label}</div>`,iconSize:[32,32],iconAnchor:[16,16],className:''});
+}
+function mkSmall(color){
+  return L.divIcon({html:`<div style="width:11px;height:11px;border-radius:50%;background:${color};border:2px solid white;box-shadow:0 1px 5px rgba(0,0,0,0.25)"></div>`,iconSize:[11,11],iconAnchor:[5.5,5.5],className:''});
+}
+function mkSq(color,border){
+  return L.divIcon({html:`<div style="width:14px;height:14px;border-radius:3px;background:${color};border:2px solid ${border};box-shadow:0 1px 5px rgba(0,0,0,0.2)"></div>`,iconSize:[14,14],iconAnchor:[7,7],className:''});
+}
+function pop(nom,tag,pros,cons){
+  const proHtml = pros.map(p=>`<div style="font-size:11px;line-height:1.6;color:#2d5a2d;padding-left:12px;position:relative"><span style="position:absolute;left:0;color:#3d6b47">✓</span>${p}</div>`).join('');
+  const conHtml = cons.map(c=>`<div style="font-size:11px;line-height:1.6;color:#6b2020;padding-left:12px;position:relative"><span style="position:absolute;left:0;color:#8b2e2e">✗</span>${c}</div>`).join('');
+  return `<div style="font-family:Outfit,sans-serif;min-width:230px;max-width:280px;">
+    <div style="font-weight:500;font-size:14px;margin-bottom:2px;color:#1c1917">${nom}</div>
+    <div style="font-style:italic;color:#9a6f2e;font-size:11px;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid #ede9e0">${tag}</div>
+    ${proHtml ? `<div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:#777;margin-bottom:4px;margin-top:4px">Pour</div>${proHtml}` : ''}
+    ${conHtml ? `<div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:#777;margin-bottom:4px;margin-top:8px">Contre</div>${conHtml}` : ''}
+  </div>`;
+}
+
+// TOP 10 — coordonnées GPS réelles
+L.marker([45.8682,4.6698],{icon:mkTop('#9a6f2e','1')}).addTo(map).bindPopup('<div style="font-family:Outfit,sans-serif;min-width:230px;max-width:280px;"><div style="font-weight:500;font-size:14px;margin-bottom:2px;color:#1c1917">Belmont-d&#39;Azergues</div><div style="font-style:italic;color:#9a6f2e;font-size:11px;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid #ede9e0">★★★★★ — ~2 900€/m² — ~172m² à 500k€</div><div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:#777;margin-bottom:4px">Pour</div><div style="font-size:11px;line-height:1.6;color:#2d5a2d;padding-left:12px;position:relative"><span style="position:absolute;left:0">✓</span>Azergues en contrebas, ruisseaux possibles</div><div style="font-size:11px;line-height:1.6;color:#2d5a2d;padding-left:12px;position:relative"><span style="position:absolute;left:0">✓</span>Vue panoramique Beaujolais</div><div style="font-size:11px;line-height:1.6;color:#2d5a2d;padding-left:12px;position:relative"><span style="position:absolute;left:0">✓</span>Bâti pierres dorées authentique</div><div style="font-size:11px;line-height:1.6;color:#2d5a2d;padding-left:12px;position:relative"><span style="position:absolute;left:0">✓</span>Prix les plus bas — ~172m² à 500k€</div><div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:#777;margin-bottom:4px;margin-top:8px">Contre</div><div style="font-size:11px;line-height:1.6;color:#6b2020;padding-left:12px;position:relative"><span style="position:absolute;left:0">✗</span>Aucune crèche sur place (Chazay 5min voiture)</div><div style="font-size:11px;line-height:1.6;color:#6b2020;padding-left:12px;position:relative"><span style="position:absolute;left:0">✗</span>Hameau sans commerces à pied</div><div style="font-size:11px;line-height:1.6;color:#6b2020;padding-left:12px;position:relative"><span style="position:absolute;left:0">✗</span>Brouillard inverse nov→mars possible</div><div style="font-size:11px;line-height:1.6;color:#6b2020;padding-left:12px;position:relative"><span style="position:absolute;left:0">✗</span>PPRI Azergues à vérifier parcelle par parcelle</div></div>');
+
+L.marker([45.8233,4.84],{icon:mkTop('#3d6b8a','2')}).addTo(map).bindPopup('<div style="font-family:Outfit,sans-serif;min-width:230px;max-width:280px;"><div style="font-weight:500;font-size:14px;margin-bottom:2px;color:#1c1917">Collonges-au-Mont-d&#39;Or</div><div style="font-style:italic;color:#9a6f2e;font-size:11px;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid #ede9e0">★★★★★ — ~4 600€/m² — ~108m² à 500k€</div><div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:#777;margin-bottom:4px">Pour</div><div style="font-size:11px;line-height:1.6;color:#2d5a2d;padding-left:12px;position:relative"><span style="position:absolute;left:0">✓</span>Saône au pied — lever de soleil est exceptionnel</div><div style="font-size:11px;line-height:1.6;color:#2d5a2d;padding-left:12px;position:relative"><span style="position:absolute;left:0">✓</span>TER gare au village 12min → Perrache + bus31 8min</div><div style="font-size:11px;line-height:1.6;color:#2d5a2d;padding-left:12px;position:relative"><span style="position:absolute;left:0">✓</span>Meilleure petite enfance de la liste (crèche 44p + 3 écoles)</div><div style="font-size:11px;line-height:1.6;color:#2d5a2d;padding-left:12px;position:relative"><span style="position:absolute;left:0">✓</span>Vrai village animé à pied</div><div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:#777;margin-bottom:4px;margin-top:8px">Contre</div><div style="font-size:11px;line-height:1.6;color:#6b2020;padding-left:12px;position:relative"><span style="position:absolute;left:0">✗</span>Prix élevés — surface limitée à 500k€</div><div style="font-size:11px;line-height:1.6;color:#6b2020;padding-left:12px;position:relative"><span style="position:absolute;left:0">✗</span>Zone PPRI quais à exclure absolument</div><div style="font-size:11px;line-height:1.6;color:#6b2020;padding-left:12px;position:relative"><span style="position:absolute;left:0">✗</span>28min total porte-à-porte → Saint-Paul</div></div>');
+
+L.marker([45.8141,4.7147],{icon:mkTop('#2d6b5a','3')}).addTo(map).bindPopup('<div style="font-family:Outfit,sans-serif;min-width:230px;max-width:280px;"><div style="font-weight:500;font-size:14px;margin-bottom:2px;color:#1c1917">La Tour-de-Salvagny</div><div style="font-style:italic;color:#9a6f2e;font-size:11px;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid #ede9e0">★★★★☆ — ~3 800€/m² — ~131m² à 500k€</div><div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:#777;margin-bottom:4px">Pour</div><div style="font-size:11px;line-height:1.6;color:#2d5a2d;padding-left:12px;position:relative"><span style="position:absolute;left:0">✓</span>Meilleur transport de la liste — C22 direct 17min → Saint-Paul</div><div style="font-size:11px;line-height:1.6;color:#2d5a2d;padding-left:12px;position:relative"><span style="position:absolute;left:0">✓</span>EAJE crèche + école maternelle sur place</div><div style="font-size:11px;line-height:1.6;color:#2d5a2d;padding-left:12px;position:relative"><span style="position:absolute;left:0">✓</span>Vignes Beaujolais — ruisseaux de coteau</div><div style="font-size:11px;line-height:1.6;color:#2d5a2d;padding-left:12px;position:relative"><span style="position:absolute;left:0">✓</span>Gare au village — zéro voiture pour Elisa</div><div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:#777;margin-bottom:4px;margin-top:8px">Contre</div><div style="font-size:11px;line-height:1.6;color:#6b2020;padding-left:12px;position:relative"><span style="position:absolute;left:0">✗</span>Zone en développement actif — vérifier PLU voisins impérativement</div><div style="font-size:11px;line-height:1.6;color:#6b2020;padding-left:12px;position:relative"><span style="position:absolute;left:0">✗</span>Vie de village correcte mais pas exceptionnelle</div><div style="font-size:11px;line-height:1.6;color:#6b2020;padding-left:12px;position:relative"><span style="position:absolute;left:0">✗</span>Peu de bâti ancien de caractère</div></div>');
+
+L.marker([45.8455,4.8313],{icon:mkTop('#5a8a3d','4')}).addTo(map).bindPopup('<div style="font-family:Outfit,sans-serif;min-width:230px;max-width:280px;"><div style="font-weight:500;font-size:14px;margin-bottom:2px;color:#1c1917">Couzon-au-Mont-d&#39;Or</div><div style="font-style:italic;color:#9a6f2e;font-size:11px;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid #ede9e0">★★★★☆ — ~3 700€/m² — ~135m² à 500k€</div><div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:#777;margin-bottom:4px">Pour</div><div style="font-size:11px;line-height:1.6;color:#2d5a2d;padding-left:12px;position:relative"><span style="position:absolute;left:0">✓</span>Même arc Saône que Collonges, 20% moins cher</div><div style="font-size:11px;line-height:1.6;color:#2d5a2d;padding-left:12px;position:relative"><span style="position:absolute;left:0">✓</span>Crèche People&Baby (22 berceaux) + école Reverchon</div><div style="font-size:11px;line-height:1.6;color:#2d5a2d;padding-left:12px;position:relative"><span style="position:absolute;left:0">✓</span>TER gare au village 13min + bus31 8min</div><div style="font-size:11px;line-height:1.6;color:#2d5a2d;padding-left:12px;position:relative"><span style="position:absolute;left:0">✓</span>24 trains/jour</div><div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:#777;margin-bottom:4px;margin-top:8px">Contre</div><div style="font-size:11px;line-height:1.6;color:#6b2020;padding-left:12px;position:relative"><span style="position:absolute;left:0">✗</span>Offre commerciale limitée vs Collonges</div><div style="font-size:11px;line-height:1.6;color:#6b2020;padding-left:12px;position:relative"><span style="position:absolute;left:0">✗</span>Peu de bâti de caractère</div><div style="font-size:11px;line-height:1.6;color:#6b2020;padding-left:12px;position:relative"><span style="position:absolute;left:0">✗</span>30min total porte-à-porte</div></div>');
+
+L.marker([45.8591,4.7119],{icon:mkTop('#7a4a3a','5')}).addTo(map).bindPopup('<div style="font-family:Outfit,sans-serif;min-width:230px;max-width:280px;"><div style="font-weight:500;font-size:14px;margin-bottom:2px;color:#1c1917">Civrieux-d&#39;Azergues</div><div style="font-style:italic;color:#9a6f2e;font-size:11px;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid #ede9e0">★★★★☆ — ~3 300€/m² — ~151m² à 500k€</div><div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:#777;margin-bottom:4px">Pour</div><div style="font-size:11px;line-height:1.6;color:#2d5a2d;padding-left:12px;position:relative"><span style="position:absolute;left:0">✓</span>Lozanne 5min voiture — C22 direct 18min → Saint-Paul</div><div style="font-size:11px;line-height:1.6;color:#2d5a2d;padding-left:12px;position:relative"><span style="position:absolute;left:0">✓</span>École privée catholique sur place</div><div style="font-size:11px;line-height:1.6;color:#2d5a2d;padding-left:12px;position:relative"><span style="position:absolute;left:0">✓</span>Azergues à proximité, ruisseaux de coteau</div><div style="font-size:11px;line-height:1.6;color:#2d5a2d;padding-left:12px;position:relative"><span style="position:absolute;left:0">✓</span>Vue vers Monts d&#39;Or et Beaujolais</div><div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:#777;margin-bottom:4px;margin-top:8px">Contre</div><div style="font-size:11px;line-height:1.6;color:#6b2020;padding-left:12px;position:relative"><span style="position:absolute;left:0">✗</span>Départementale passante dans certains quartiers</div><div style="font-size:11px;line-height:1.6;color:#6b2020;padding-left:12px;position:relative"><span style="position:absolute;left:0">✗</span>Crèche à Chazay 2min voiture</div><div style="font-size:11px;line-height:1.6;color:#6b2020;padding-left:12px;position:relative"><span style="position:absolute;left:0">✗</span>Zone en développement — vérifier PLU voisins</div></div>');
+
+L.marker([45.874,4.7104],{icon:mkTop('#5a4a7a','6')}).addTo(map).bindPopup('<div style="font-family:Outfit,sans-serif;min-width:230px;max-width:280px;"><div style="font-weight:500;font-size:14px;margin-bottom:2px;color:#1c1917">Chazay-d&#39;Azergues</div><div style="font-style:italic;color:#9a6f2e;font-size:11px;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid #ede9e0">★★★★☆ — ~3 200€/m² — ~156m² à 500k€</div><div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:#777;margin-bottom:4px">Pour</div><div style="font-size:11px;line-height:1.6;color:#2d5a2d;padding-left:12px;position:relative"><span style="position:absolute;left:0">✓</span>Meilleure vie de village à pied (Super U, bistrot, marché, cinéma)</div><div style="font-size:11px;line-height:1.6;color:#2d5a2d;padding-left:12px;position:relative"><span style="position:absolute;left:0">✓</span>Meilleur équipement petite enfance — crèche Ribambelle + école Jules Verne</div><div style="font-size:11px;line-height:1.6;color:#2d5a2d;padding-left:12px;position:relative"><span style="position:absolute;left:0">✓</span>L&#39;Azergues borde la commune</div><div style="font-size:11px;line-height:1.6;color:#2d5a2d;padding-left:12px;position:relative"><span style="position:absolute;left:0">✓</span>Prix en baisse 14% — négociable</div><div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:#777;margin-bottom:4px;margin-top:8px">Contre</div><div style="font-size:11px;line-height:1.6;color:#6b2020;padding-left:12px;position:relative"><span style="position:absolute;left:0">✗</span>Bâti dominant pavillonnaire — bâti ancien rare</div><div style="font-size:11px;line-height:1.6;color:#6b2020;padding-left:12px;position:relative"><span style="position:absolute;left:0">✗</span>Bus 5min vers Lozanne — pas de gare au village</div><div style="font-size:11px;line-height:1.6;color:#6b2020;padding-left:12px;position:relative"><span style="position:absolute;left:0">✗</span>20min Limonest</div></div>');
+
+L.marker([45.8352,4.6152],{icon:mkTop('#8a3d5a','7')}).addTo(map).bindPopup('<div style="font-family:Outfit,sans-serif;min-width:230px;max-width:280px;"><div style="font-weight:500;font-size:14px;margin-bottom:2px;color:#1c1917">L&#39;Arbresle</div><div style="font-style:italic;color:#9a6f2e;font-size:11px;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid #ede9e0">★★★☆☆ — ~3 200€/m² — ~156m² à 500k€</div><div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:#777;margin-bottom:4px">Pour</div><div style="font-size:11px;line-height:1.6;color:#2d5a2d;padding-left:12px;position:relative"><span style="position:absolute;left:0">✓</span>Bourg animé avec vraie vie à pied — commerces, marché, restaurants</div><div style="font-size:11px;line-height:1.6;color:#2d5a2d;padding-left:12px;position:relative"><span style="position:absolute;left:0">✓</span>Plusieurs crèches et écoles sur place</div><div style="font-size:11px;line-height:1.6;color:#2d5a2d;padding-left:12px;position:relative"><span style="position:absolute;left:0">✓</span>C22 direct gare en ville → Saint-Paul 30min</div><div style="font-size:11px;line-height:1.6;color:#2d5a2d;padding-left:12px;position:relative"><span style="position:absolute;left:0">✓</span>Azergues et Brévenne à proximité</div><div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:#777;margin-bottom:4px;margin-top:8px">Contre</div><div style="font-size:11px;line-height:1.6;color:#6b2020;padding-left:12px;position:relative"><span style="position:absolute;left:0">✗</span>30min de trajet C22 — le plus long des directs</div><div style="font-size:11px;line-height:1.6;color:#6b2020;padding-left:12px;position:relative"><span style="position:absolute;left:0">✗</span>Peu de bâti de caractère en centre</div><div style="font-size:11px;line-height:1.6;color:#6b2020;padding-left:12px;position:relative"><span style="position:absolute;left:0">✗</span>25min Limonest — limite haute</div></div>');
+
+L.marker([45.8832,4.8027],{icon:mkTop('#1a5a8a','8')}).addTo(map).bindPopup('<div style="font-family:Outfit,sans-serif;min-width:230px;max-width:280px;"><div style="font-weight:500;font-size:14px;margin-bottom:2px;color:#1c1917">Saint-Germain-au-Mont-d&#39;Or</div><div style="font-style:italic;color:#9a6f2e;font-size:11px;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid #ede9e0">★★★☆☆ — ~3 800€/m² — ~131m² à 500k€</div><div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:#777;margin-bottom:4px">Pour</div><div style="font-size:11px;line-height:1.6;color:#2d5a2d;padding-left:12px;position:relative"><span style="position:absolute;left:0">✓</span>Gare au village — C22 direct Saint-Paul 20min</div><div style="font-size:11px;line-height:1.6;color:#2d5a2d;padding-left:12px;position:relative"><span style="position:absolute;left:0">✓</span>École maternelle Françoise Dolto sur place</div><div style="font-size:11px;line-height:1.6;color:#2d5a2d;padding-left:12px;position:relative"><span style="position:absolute;left:0">✓</span>15min Limonest — excellent pour toi</div><div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:#777;margin-bottom:4px;margin-top:8px">Contre</div><div style="font-size:11px;line-height:1.6;color:#6b2020;padding-left:12px;position:relative"><span style="position:absolute;left:0">✗</span>Aucune eau ni vue panoramique</div><div style="font-size:11px;line-height:1.6;color:#6b2020;padding-left:12px;position:relative"><span style="position:absolute;left:0">✗</span>Vie de village sans caractère</div><div style="font-size:11px;line-height:1.6;color:#6b2020;padding-left:12px;position:relative"><span style="position:absolute;left:0">✗</span>Prix élevés pour ce que c&#39;est</div><div style="font-size:11px;line-height:1.6;color:#6b2020;padding-left:12px;position:relative"><span style="position:absolute;left:0">✗</span>Aucun attrait architectural</div></div>');
+
+L.marker([45.8868,4.6222],{icon:mkTop('#6a6a2e','9')}).addTo(map).bindPopup('<div style="font-family:Outfit,sans-serif;min-width:230px;max-width:280px;"><div style="font-weight:500;font-size:14px;margin-bottom:2px;color:#1c1917">Chessy-les-Mines</div><div style="font-style:italic;color:#9a6f2e;font-size:11px;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid #ede9e0">★★★☆☆ — ~2 700€/m² — ~185m² à 500k€</div><div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:#777;margin-bottom:4px">Pour</div><div style="font-size:11px;line-height:1.6;color:#2d5a2d;padding-left:12px;position:relative"><span style="position:absolute;left:0">✓</span>Prix les plus bas avec Belmont — ~185m² à 500k€</div><div style="font-size:11px;line-height:1.6;color:#2d5a2d;padding-left:12px;position:relative"><span style="position:absolute;left:0">✓</span>Crèche Le Petit Chessillon sur place</div><div style="font-size:11px;line-height:1.6;color:#2d5a2d;padding-left:12px;position:relative"><span style="position:absolute;left:0">✓</span>Azergues à proximité</div><div style="font-size:11px;line-height:1.6;color:#2d5a2d;padding-left:12px;position:relative"><span style="position:absolute;left:0">✓</span>Grande surface habitable</div><div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:#777;margin-bottom:4px;margin-top:8px">Contre</div><div style="font-size:11px;line-height:1.6;color:#6b2020;padding-left:12px;position:relative"><span style="position:absolute;left:0">✗</span>35min → Saint-Paul — le plus long de la liste</div><div style="font-size:11px;line-height:1.6;color:#6b2020;padding-left:12px;position:relative"><span style="position:absolute;left:0">✗</span>Vie de village très faible</div><div style="font-size:11px;line-height:1.6;color:#6b2020;padding-left:12px;position:relative"><span style="position:absolute;left:0">✗</span>Peu de bâti de caractère</div><div style="font-size:11px;line-height:1.6;color:#6b2020;padding-left:12px;position:relative"><span style="position:absolute;left:0">✗</span>25min Limonest — limite</div></div>');
+
+L.marker([45.8769,4.6452],{icon:mkTop('#5a5a5a','10')}).addTo(map).bindPopup('<div style="font-family:Outfit,sans-serif;min-width:230px;max-width:280px;"><div style="font-weight:500;font-size:14px;margin-bottom:2px;color:#1c1917">Châtillon d&#39;Azergues</div><div style="font-style:italic;color:#9a6f2e;font-size:11px;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid #ede9e0">★★★☆☆ — ~2 700€/m² — ~185m² à 500k€</div><div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:#777;margin-bottom:4px">Pour</div><div style="font-size:11px;line-height:1.6;color:#2d5a2d;padding-left:12px;position:relative"><span style="position:absolute;left:0">✓</span>L&#39;Azergues traverse la commune — eau garantie</div><div style="font-size:11px;line-height:1.6;color:#2d5a2d;padding-left:12px;position:relative"><span style="position:absolute;left:0">✓</span>Prix parmi les plus bas</div><div style="font-size:11px;line-height:1.6;color:#2d5a2d;padding-left:12px;position:relative"><span style="position:absolute;left:0">✓</span>Château médiéval — cachet architectural</div><div style="font-size:11px;line-height:1.6;color:#2d5a2d;padding-left:12px;position:relative"><span style="position:absolute;left:0">✓</span>Calme absolu — village préservé</div><div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:#777;margin-bottom:4px;margin-top:8px">Contre</div><div style="font-size:11px;line-height:1.6;color:#6b2020;padding-left:12px;position:relative"><span style="position:absolute;left:0">✗</span>Crèche à Chessy ou Chazay (5-8min voiture)</div><div style="font-size:11px;line-height:1.6;color:#6b2020;padding-left:12px;position:relative"><span style="position:absolute;left:0">✗</span>Vie de village très faible</div><div style="font-size:11px;line-height:1.6;color:#6b2020;padding-left:12px;position:relative"><span style="position:absolute;left:0">✗</span>32min → Saint-Paul</div></div>');
+
+
+// SHORTLIST
+L.marker([45.8376,4.8243],{icon:mkSmall('#999')}).addTo(map).bindPopup('<div style="font-family:Outfit,sans-serif;min-width:230px;max-width:280px;"><div style="font-weight:500;font-size:14px;margin-bottom:2px;color:#1c1917">Saint-Romain-au-Mont-d&#39;Or</div><div style="font-style:italic;color:#9a6f2e;font-size:11px;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid #ede9e0">Shortlist — TER 28min</div><div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:#777;margin-bottom:4px">Pour</div><div style="font-size:11px;line-height:1.6;color:#2d5a2d;padding-left:12px;position:relative"><span style="position:absolute;left:0">✓</span>Saône proche</div><div style="font-size:11px;line-height:1.6;color:#2d5a2d;padding-left:12px;position:relative"><span style="position:absolute;left:0">✓</span>TER 28min</div><div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:#777;margin-bottom:4px;margin-top:8px">Contre</div><div style="font-size:11px;line-height:1.6;color:#6b2020;padding-left:12px;position:relative"><span style="position:absolute;left:0">✗</span>Aucune crèche sur place</div><div style="font-size:11px;line-height:1.6;color:#6b2020;padding-left:12px;position:relative"><span style="position:absolute;left:0">✗</span>Peu de commerces</div></div>');
+L.marker([45.8405,4.8352],{icon:mkSmall('#999')}).addTo(map).bindPopup('<div style="font-family:Outfit,sans-serif;min-width:230px;max-width:280px;"><div style="font-weight:500;font-size:14px;margin-bottom:2px;color:#1c1917">Rochetaillée-sur-Saône</div><div style="font-style:italic;color:#9a6f2e;font-size:11px;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid #ede9e0">Shortlist — Saône bord</div><div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:#777;margin-bottom:4px">Pour</div><div style="font-size:11px;line-height:1.6;color:#2d5a2d;padding-left:12px;position:relative"><span style="position:absolute;left:0">✓</span>Saône bord</div><div style="font-size:11px;line-height:1.6;color:#2d5a2d;padding-left:12px;position:relative"><span style="position:absolute;left:0">✓</span>Village calme</div><div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:#777;margin-bottom:4px;margin-top:8px">Contre</div><div style="font-size:11px;line-height:1.6;color:#6b2020;padding-left:12px;position:relative"><span style="position:absolute;left:0">✗</span>Aucune crèche</div><div style="font-size:11px;line-height:1.6;color:#6b2020;padding-left:12px;position:relative"><span style="position:absolute;left:0">✗</span>Peu animé</div></div>');
+L.marker([45.8631,4.8456],{icon:mkSmall('#999')}).addTo(map).bindPopup('<div style="font-family:Outfit,sans-serif;min-width:230px;max-width:280px;"><div style="font-weight:500;font-size:14px;margin-bottom:2px;color:#1c1917">Fleurieu-sur-Saône</div><div style="font-style:italic;color:#9a6f2e;font-size:11px;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid #ede9e0">Shortlist — TER 35min</div><div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:#777;margin-bottom:4px">Pour</div><div style="font-size:11px;line-height:1.6;color:#2d5a2d;padding-left:12px;position:relative"><span style="position:absolute;left:0">✓</span>TER direct</div><div style="font-size:11px;line-height:1.6;color:#2d5a2d;padding-left:12px;position:relative"><span style="position:absolute;left:0">✓</span>Prix abordables</div><div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:#777;margin-bottom:4px;margin-top:8px">Contre</div><div style="font-size:11px;line-height:1.6;color:#6b2020;padding-left:12px;position:relative"><span style="position:absolute;left:0">✗</span>Aucune crèche</div><div style="font-size:11px;line-height:1.6;color:#6b2020;padding-left:12px;position:relative"><span style="position:absolute;left:0">✗</span>35min → SP</div></div>');
+L.marker([45.8707,4.8324],{icon:mkSmall('#999')}).addTo(map).bindPopup('<div style="font-family:Outfit,sans-serif;min-width:230px;max-width:280px;"><div style="font-weight:500;font-size:14px;margin-bottom:2px;color:#1c1917">Albigny-sur-Saône</div><div style="font-style:italic;color:#9a6f2e;font-size:11px;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid #ede9e0">Shortlist — TER 37min</div><div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:#777;margin-bottom:4px">Pour</div><div style="font-size:11px;line-height:1.6;color:#2d5a2d;padding-left:12px;position:relative"><span style="position:absolute;left:0">✓</span>TER direct</div><div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:#777;margin-bottom:4px;margin-top:8px">Contre</div><div style="font-size:11px;line-height:1.6;color:#6b2020;padding-left:12px;position:relative"><span style="position:absolute;left:0">✗</span>37min → SP</div><div style="font-size:11px;line-height:1.6;color:#6b2020;padding-left:12px;position:relative"><span style="position:absolute;left:0">✗</span>Peu de cachet</div></div>');
+L.marker([45.8738,4.7723],{icon:mkSmall('#999')}).addTo(map).bindPopup('<div style="font-family:Outfit,sans-serif;min-width:230px;max-width:280px;"><div style="font-weight:500;font-size:14px;margin-bottom:2px;color:#1c1917">Chasselay</div><div style="font-style:italic;color:#9a6f2e;font-size:11px;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid #ede9e0">Shortlist — Vue Alpes</div><div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:#777;margin-bottom:4px">Pour</div><div style="font-size:11px;line-height:1.6;color:#2d5a2d;padding-left:12px;position:relative"><span style="position:absolute;left:0">✓</span>Vue Alpes</div><div style="font-size:11px;line-height:1.6;color:#2d5a2d;padding-left:12px;position:relative"><span style="position:absolute;left:0">✓</span>10min Limonest</div><div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:#777;margin-bottom:4px;margin-top:8px">Contre</div><div style="font-size:11px;line-height:1.6;color:#6b2020;padding-left:12px;position:relative"><span style="position:absolute;left:0">✗</span>Pas d&#39;eau</div><div style="font-size:11px;line-height:1.6;color:#6b2020;padding-left:12px;position:relative"><span style="position:absolute;left:0">✗</span>C22 limité</div></div>');
+L.marker([45.8188,4.6628],{icon:mkSmall('#999')}).addTo(map).bindPopup('<div style="font-family:Outfit,sans-serif;min-width:230px;max-width:280px;"><div style="font-weight:500;font-size:14px;margin-bottom:2px;color:#1c1917">Lentilly</div><div style="font-style:italic;color:#9a6f2e;font-size:11px;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid #ede9e0">Shortlist — C22 14min (!)</div><div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:#777;margin-bottom:4px">Pour</div><div style="font-size:11px;line-height:1.6;color:#2d5a2d;padding-left:12px;position:relative"><span style="position:absolute;left:0">✓</span>C22 direct 14min → SP</div><div style="font-size:11px;line-height:1.6;color:#2d5a2d;padding-left:12px;position:relative"><span style="position:absolute;left:0">✓</span>Prix corrects</div><div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:#777;margin-bottom:4px;margin-top:8px">Contre</div><div style="font-size:11px;line-height:1.6;color:#6b2020;padding-left:12px;position:relative"><span style="position:absolute;left:0">✗</span>Crèche à La Tour-de-Salvagny</div><div style="font-size:11px;line-height:1.6;color:#6b2020;padding-left:12px;position:relative"><span style="position:absolute;left:0">✗</span>Peu animé</div></div>');
+L.marker([45.7785,4.7441],{icon:mkSmall('#999')}).addTo(map).bindPopup('<div style="font-family:Outfit,sans-serif;min-width:230px;max-width:280px;"><div style="font-weight:500;font-size:14px;margin-bottom:2px;color:#1c1917">Charbonnières-les-Bains</div><div style="font-style:italic;color:#9a6f2e;font-size:11px;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid #ede9e0">Shortlist — C22 23min</div><div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:#777;margin-bottom:4px">Pour</div><div style="font-size:11px;line-height:1.6;color:#2d5a2d;padding-left:12px;position:relative"><span style="position:absolute;left:0">✓</span>C22 direct 23min</div><div style="font-size:11px;line-height:1.6;color:#2d5a2d;padding-left:12px;position:relative"><span style="position:absolute;left:0">✓</span>Crèche + école</div><div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:#777;margin-bottom:4px;margin-top:8px">Contre</div><div style="font-size:11px;line-height:1.6;color:#6b2020;padding-left:12px;position:relative"><span style="position:absolute;left:0">✗</span>5000€/m² très cher</div><div style="font-size:11px;line-height:1.6;color:#6b2020;padding-left:12px;position:relative"><span style="position:absolute;left:0">✗</span>Pas d&#39;eau</div></div>');
+L.marker([45.8358,4.6519],{icon:mkSmall('#999')}).addTo(map).bindPopup('<div style="font-family:Outfit,sans-serif;min-width:230px;max-width:280px;"><div style="font-weight:500;font-size:14px;margin-bottom:2px;color:#1c1917">Fleurieux-sur-l&#39;Arbresle</div><div style="font-style:italic;color:#9a6f2e;font-size:11px;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid #ede9e0">Shortlist — C22 36min</div><div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:#777;margin-bottom:4px">Pour</div><div style="font-size:11px;line-height:1.6;color:#2d5a2d;padding-left:12px;position:relative"><span style="position:absolute;left:0">✓</span>C22 direct</div><div style="font-size:11px;line-height:1.6;color:#2d5a2d;padding-left:12px;position:relative"><span style="position:absolute;left:0">✓</span>Azergues proche</div><div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:#777;margin-bottom:4px;margin-top:8px">Contre</div><div style="font-size:11px;line-height:1.6;color:#6b2020;padding-left:12px;position:relative"><span style="position:absolute;left:0">✗</span>36min → SP</div><div style="font-size:11px;line-height:1.6;color:#6b2020;padding-left:12px;position:relative"><span style="position:absolute;left:0">✗</span>Rural</div></div>');
+L.marker([45.8106,4.5994],{icon:mkSmall('#999')}).addTo(map).bindPopup('<div style="font-family:Outfit,sans-serif;min-width:230px;max-width:280px;"><div style="font-weight:500;font-size:14px;margin-bottom:2px;color:#1c1917">Sain-Bel</div><div style="font-style:italic;color:#9a6f2e;font-size:11px;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid #ede9e0">Shortlist — Brévenne rivière</div><div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:#777;margin-bottom:4px">Pour</div><div style="font-size:11px;line-height:1.6;color:#2d5a2d;padding-left:12px;position:relative"><span style="position:absolute;left:0">✓</span>Brévenne rivière</div><div style="font-size:11px;line-height:1.6;color:#2d5a2d;padding-left:12px;position:relative"><span style="position:absolute;left:0">✓</span>Prix très bas</div><div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:#777;margin-bottom:4px;margin-top:8px">Contre</div><div style="font-size:11px;line-height:1.6;color:#6b2020;padding-left:12px;position:relative"><span style="position:absolute;left:0">✗</span>41min → SP</div><div style="font-size:11px;line-height:1.6;color:#6b2020;padding-left:12px;position:relative"><span style="position:absolute;left:0">✗</span>Peu animé</div></div>');
+L.marker([45.8563,4.8],{icon:mkSmall('#999')}).addTo(map).bindPopup('<div style="font-family:Outfit,sans-serif;min-width:230px;max-width:280px;"><div style="font-weight:500;font-size:14px;margin-bottom:2px;color:#1c1917">Poleymieux-au-Mont-d&#39;Or</div><div style="font-style:italic;color:#9a6f2e;font-size:11px;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid #ede9e0">Shortlist — Vue Alpes exceptionnelle</div><div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:#777;margin-bottom:4px">Pour</div><div style="font-size:11px;line-height:1.6;color:#2d5a2d;padding-left:12px;position:relative"><span style="position:absolute;left:0">✓</span>Vue Alpes exceptionnelle</div><div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:#777;margin-bottom:4px;margin-top:8px">Contre</div><div style="font-size:11px;line-height:1.6;color:#6b2020;padding-left:12px;position:relative"><span style="position:absolute;left:0">✗</span>Voiture seule</div><div style="font-size:11px;line-height:1.6;color:#6b2020;padding-left:12px;position:relative"><span style="position:absolute;left:0">✗</span>Aucune crèche</div></div>');
+
+// POINTS CLÉS
+L.marker([45.7660,4.8270],{icon:mkSq('#e3eef6','#3d6b8a')}).addTo(map)
+  .bindPopup('<div style="font-family:Outfit,sans-serif"><b>Lyon Saint-Paul</b><br><span style="color:#3d6b8a;font-size:12px">Gare cible Elisa — terminus C22 + bus 31 depuis Perrache</span></div>');
+L.marker([45.7492,4.8263],{icon:mkSq('#efefef','#777')}).addTo(map)
+  .bindPopup('<div style="font-family:Outfit,sans-serif"><b>Lyon Perrache</b><br><span style="color:#777;font-size:12px">TER val de Saône → Perrache → bus 31 8min → Saint-Paul</span></div>');
+L.marker([45.8357,4.7711],{icon:mkSq('#f7eed9','#9a6f2e')}).addTo(map)
+  .bindPopup('<div style="font-family:Outfit,sans-serif"><b>Limonest</b><br><span style="color:#9a6f2e;font-size:12px">Bureau Freeland — référence toi</span></div>');
+L.marker([45.8552,4.6802],{icon:mkSq('#f7eed9','#9a6f2e')}).addTo(map)
+  .bindPopup('<div style="font-family:Outfit,sans-serif"><b>Lozanne</b><br><span style="color:#9a6f2e;font-size:12px">Nœud C22 — ligne Azergues → Saint-Paul 18min</span></div>');
+L.marker([45.7613,4.7773],{icon:mkSq('#efefef','#777')}).addTo(map)
+  .bindPopup('<div style="font-family:Outfit,sans-serif"><b>Tassin / Gare nœud C22</b><br><span style="color:#777;font-size:12px">Bifurcation Sain-Bel / Brignais / Lozanne — 25min SP</span></div>');
+</script>
+</body>
+</html>
